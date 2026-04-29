@@ -1,0 +1,177 @@
+using Microsoft.EntityFrameworkCore;
+using xablauBack.Application.Contracts.Carrinho;
+using xablauBack.Domain.Entities;
+using xablauBack.Infrastructure.Data;
+
+namespace xablauBack.Application.Services.Carrinho;
+
+public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinho */
+{
+    private readonly AppDbContext _context;
+
+    public CarrinhoService(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<CarrinhoResponse?> ObterCarrinhoPorUsuarioAsync(int usuarioId)
+    {
+        var carrinho = await _context.Carrinhos /* acessa a tablela de carrinhos */
+            .Include(carrinho => carrinho.Itens) /* faz o EF trazer os itens do carrinho */
+            .ThenInclude(itemCarrinho => itemCarrinho.Produto) /* carrega cada produto de cada item */
+            .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId); /* busca o primeiro carrinho daquele usuário */
+
+        if (carrinho is null) /* se não achar o carrinho retorna null */
+        {
+            return null;
+        }
+
+        var response = new CarrinhoResponse
+        {
+            CarrinhoId = carrinho.Id,
+            UsuarioId = carrinho.UsuarioId,
+            Itens = carrinho.Itens.Select(item => new CarrinhoItemResponse /* organizando o que vai para o banco */
+            {
+                ProdutoId = item.ProdutoId,
+                Nome = item.Produto.Nome,
+                ImagemUrl = item.Produto.ImagemUrl,
+                Preco = item.Produto.Preco,
+                Quantidade = item.Quantidade,
+                Subtotal = item.Produto.Preco * item.Quantidade
+            }).ToList()
+        };
+
+        response.Total = response.Itens.Sum(item => item.Subtotal); /* soma tudo */
+
+        return response;
+    }
+
+    public async Task<CarrinhoResponse?> AdicionarItemAsync(int usuarioId, AdicionarItemCarrinhoRequest request)
+    {
+        if (request.Quantidade <= 0) /* bloqueia quantidade inválida */
+        {
+            return null;
+        }
+
+        var carrinho = await _context.Carrinhos
+            .Include(carrinho => carrinho.Itens) /* busca o carrinho com os itens que ele já tem */
+            .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId); /* confere se bate com o usuário */
+
+        if (carrinho is null)
+        {
+            return null;
+        }
+        
+        var produto = await _context.Produtos
+            .FirstOrDefaultAsync(produto => produto.Id == request.ProdutoId);
+
+        if (produto is null)
+        {
+            return null;
+        }
+
+        /* verifica se o produto já está no carrinho, se não existe cria novo, se já existe soma */
+        var itemExistente = carrinho.Itens
+            .FirstOrDefault(itemExistente => itemExistente.ProdutoId == request.ProdutoId);
+
+        if (itemExistente is null)
+        {
+            var novoItem = new ItemCarrinho
+            {
+                CarrinhoId = carrinho.Id,
+                ProdutoId = produto.Id,
+                Quantidade = request.Quantidade
+            };
+
+            _context.ItensCarrinho.Add(novoItem);
+        }
+        else
+        {
+            itemExistente.Quantidade += request.Quantidade;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return await ObterCarrinhoPorUsuarioAsync(usuarioId); /* retorna carrinho atualizado */
+    }   
+
+    /* usuarioId = de quem é o carrinho, produtoId = qual produto deve ser removido */
+    public async Task<CarrinhoResponse?> RemoverItemAsync(int usuarioId, int produtoId)
+    {
+        var carrinho = await _context.Carrinhos
+            .Include(carrinho => carrinho.Itens) /* carrega os itens */
+            .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId);
+        
+        if (carrinho is null)
+        {
+            return null;
+        }
+
+        var item = carrinho.Itens
+            .FirstOrDefault(item => item.ProdutoId == produtoId);
+
+        if (item is null)
+        {
+            return null;
+        }
+
+        _context.ItensCarrinho.Remove(item); /* dizendo para o banco que esse que vai ser deletado */
+
+        await _context.SaveChangesAsync(); /* deleta the fato */
+
+        return await ObterCarrinhoPorUsuarioAsync(usuarioId);
+    }
+
+    public async Task<CarrinhoResponse?> AtualizarQuantidadeAsync(int usuarioId, int produtoId, AtualizarQuantidadeItemRequest request)
+    {
+        var carrinho = await _context.Carrinhos
+            .Include(carrinho => carrinho.Itens)
+            .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId);
+
+        if (carrinho is null)
+        {
+            return null;
+        }
+
+        var item = carrinho.Itens
+            .FirstOrDefault(item => item.ProdutoId == produtoId);
+
+        if (item is null)
+        {
+            return null;
+        }
+
+        if (request.Quantidade <= 0)
+        {
+            _context.ItensCarrinho.Remove(item);
+        }
+        else
+        {
+            item.Quantidade = request.Quantidade;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return await ObterCarrinhoPorUsuarioAsync(usuarioId);
+    }
+
+    /* tira todos itens do carrinho */
+    public async Task<CarrinhoResponse?> LimparCarrinhoAsync(int usuarioId)
+    {
+        var carrinho = await _context.Carrinhos
+            .Include(carrinho => carrinho.Itens)
+            .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId);
+
+        if (carrinho is null)
+        {
+            return null;
+        }
+
+        _context.ItensCarrinho.RemoveRange(carrinho.Itens); /* tipo um for de remoção de itens */
+
+        await _context.SaveChangesAsync();
+
+        return await ObterCarrinhoPorUsuarioAsync(usuarioId);
+    }
+
+}

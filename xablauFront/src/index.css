@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+@theme {
+  --breakpoint-md: 740px;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+* {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+  --primary-color: 207 100% 28%; /* azul escuro */
+  --secondary-color: 25, 75%, 55%; /* laranja */
+  --tertiery-color: 207 75% 55%; /* azul mais claro */
+  --background: 208 100% 97%; /* aliceblue para bg */ 
+
+  --foreground: 207 100% 10%; /* azul quase preto para texto */
+}
+
+body {
+  background-color: aliceblue;
+  padding-top: 124px;
+}
