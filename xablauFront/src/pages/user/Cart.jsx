@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CartProductCard } from "../../components/common/CartProductCard";
+import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { Flex, Text, Button, Box } from "@chakra-ui/react";
 import { useCartStore } from "../../store/useCartStore";
 import { useOrdersStore } from '../../store/useOrdersStore';
+import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
 
 function formatCurrency(value) {
   return value.toLocaleString('pt-BR', {
@@ -37,16 +39,81 @@ function calculateShipping(cep) {
   return { label: 'Demais regiões', value: 39.90 };
 }
 
+function calculateInstallmentTotal(total, installments) {
+  if (installments <= 3) {
+    return total;
+  }
+
+  const interestRate = (installments - 3) * 0.025;
+  return total * (1 + interestRate);
+}
+
+function CartItemSkeleton() {
+  return (
+    <Flex
+      w="900px"
+      p="20px"
+      bg="white"
+      border="1px solid"
+      borderColor="gray.200"
+      borderRadius="14px"
+      m="15px"
+      gap="18px"
+      align="center"
+      animation="pulse 1.4s ease-in-out infinite"
+    >
+      <Box boxSize="150px" bg="gray.200" borderRadius="8px" />
+      <Flex direction="column" flex="1" gap="10px">
+        <Box h="18px" bg="gray.200" borderRadius="6px" w="78%" />
+        <Box h="14px" bg="gray.200" borderRadius="6px" w="48%" />
+        <Box h="14px" bg="gray.200" borderRadius="6px" w="56%" />
+      </Flex>
+      <Box h="36px" w="90px" bg="gray.200" borderRadius="8px" />
+      <Box h="46px" w="110px" bg="gray.200" borderRadius="8px" />
+    </Flex>
+  );
+}
+
+function OrderSummarySkeleton() {
+  return (
+    <Flex
+      direction="column"
+      bg="white"
+      border="1px solid"
+      borderColor="gray.200"
+      borderRadius="14px"
+      p="24px"
+      w="100%"
+      gap="14px"
+      marginTop="124px"
+      animation="pulse 1.4s ease-in-out infinite"
+    >
+      <Box h="22px" bg="gray.200" borderRadius="6px" w="70%" />
+      <Box h="16px" bg="gray.200" borderRadius="6px" />
+      <Box h="16px" bg="gray.200" borderRadius="6px" />
+      <Box h="1px" bg="gray.200" />
+      <Box h="24px" bg="gray.200" borderRadius="6px" />
+      <Box h="40px" bg="gray.200" borderRadius="8px" />
+    </Flex>
+  );
+}
+
 export function Cart() {
   const navigate = useNavigate();
   const cart = useCartStore((state) => state.cart);
+  const isLoading = useCartStore((state) => state.isLoading);
   const loadCart = useCartStore((state) => state.loadCart);
   const clearCart = useCartStore((state) => state.clearCart);
   const addOrder = useOrdersStore((state) => state.addOrder);
+  const coupons = useCouponsStore((state) => state.coupons);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pix');
+  const [installments, setInstallments] = useState(1);
   const [cep, setCep] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [checkoutMessage, setCheckoutMessage] = useState('');
+  const [couponMessage, setCouponMessage] = useState('');
   const [isFinishing, setIsFinishing] = useState(false);
 
   useEffect(() => {
@@ -59,10 +126,40 @@ export function Cart() {
 
   const shipping = calculateShipping(cep);
   const shippingAmount = shipping?.value ?? 0;
-  const finalTotal = totalAmount + shippingAmount;
+  const discountAmount = appliedCoupon ? totalAmount * (appliedCoupon.discountPercent / 100) : 0;
+  const finalTotal = Math.max(totalAmount - discountAmount, 0) + shippingAmount;
+  const paymentTotal = paymentMethod === 'credit-card'
+    ? calculateInstallmentTotal(finalTotal, installments)
+    : finalTotal;
+  const interestAmount = paymentTotal - finalTotal;
   const cepDigits = cep.replace(/\D/g, '');
   const formattedTotal = formatCurrency(totalAmount);
-  const formattedFinalTotal = formatCurrency(finalTotal);
+  const formattedFinalTotal = formatCurrency(paymentTotal);
+
+  const handleCouponChange = (value) => {
+    setCouponCode(normalizeCouponCode(value));
+    setAppliedCoupon(null);
+    setCouponMessage('');
+  };
+
+  const handleApplyCoupon = () => {
+    const coupon = coupons.find((item) => item.code === couponCode);
+
+    if (!coupon) {
+      setAppliedCoupon(null);
+      setCouponMessage('Cupom não encontrado.');
+      return;
+    }
+
+    if (isCouponExpired(coupon)) {
+      setAppliedCoupon(null);
+      setCouponMessage('Esse cupom expirou.');
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setCouponMessage(`${coupon.code} aplicado: ${coupon.discountPercent}% de desconto.`);
+  };
 
   const handleFinishPurchase = async () => {
     if (!shipping) {
@@ -81,8 +178,12 @@ export function Cart() {
         paymentMethod,
         cep: cepDigits,
         shipping,
+        coupon: appliedCoupon,
+        discount: discountAmount,
+        installments: paymentMethod === 'credit-card' ? installments : 1,
+        interest: interestAmount,
         subtotal: totalAmount,
-        total: finalTotal,
+        total: paymentTotal,
       });
       await clearCart();
       navigate('/orders');
@@ -92,6 +193,36 @@ export function Cart() {
       setIsFinishing(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Flex w="100%">
+        <PageLoadingBar />
+        <Flex direction="column" alignItems="center" maxWidth="75%">
+          <Flex
+            justify="center"
+            alignItems="center"
+            w="100vw"
+            m="20px"
+            fontSize="30px"
+            fontWeight="bold"
+          >
+            Carrinho
+          </Flex>
+
+          <Flex direction="column">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <CartItemSkeleton key={index} />
+            ))}
+          </Flex>
+        </Flex>
+
+        <Flex direction="column" alignItems="center" maxWidth="25%" h="85vh" p="20px">
+          <OrderSummarySkeleton />
+        </Flex>
+      </Flex>
+    );
+  }
 
   if (cart.length === 0) {
     return (
@@ -183,6 +314,21 @@ export function Cart() {
             <Text fontWeight='bold'>{formattedTotal}</Text>
           </Flex>
 
+          {appliedCoupon && (
+            <Flex justify='space-between' align="flex-start" gap="10px">
+              <Text
+                color='gray.500'
+                minW="0"
+                overflowWrap="anywhere"
+                wordBreak="break-word"
+                whiteSpace="normal"
+              >
+                Cupom {appliedCoupon.code}
+              </Text>
+              <Text fontWeight='bold' color='green.600' flexShrink="0">- {formatCurrency(discountAmount)}</Text>
+            </Flex>
+          )}
+
           <Flex justify='space-between'>
             <Text color='gray.500'>Frete</Text>
             <Text fontWeight='bold' color={shipping ? 'gray.900' : 'gray.500'}>
@@ -196,12 +342,21 @@ export function Cart() {
             </Text>
           )}
 
+          {interestAmount > 0 && (
+            <Flex justify='space-between'>
+              <Text color='gray.500'>Juros</Text>
+              <Text fontWeight='bold' color='gray.900'>
+                {formatCurrency(interestAmount)}
+              </Text>
+            </Flex>
+          )}
+
           <Flex borderTop='1px solid' borderColor='gray.200' mt='4px' />
 
           <Flex justify='space-between' align='center'>
             <Text fontSize='16px' fontWeight='bold' color='gray.900'>Total</Text>
             <Text fontSize='20px' fontWeight='bold' color='#e27d35'>
-              {checkoutOpen && shipping ? formattedFinalTotal : formattedTotal}
+              {formattedFinalTotal}
             </Text>
           </Flex>
 
@@ -219,7 +374,10 @@ export function Cart() {
                     name="payment"
                     value="pix"
                     checked={paymentMethod === 'pix'}
-                    onChange={() => setPaymentMethod('pix')}
+                    onChange={() => {
+                      setPaymentMethod('pix');
+                      setInstallments(1);
+                    }}
                   />
                   <Text fontSize="14px">PIX</Text>
                 </Flex>
@@ -236,6 +394,84 @@ export function Cart() {
                   <Text fontSize="14px">Cartão de crédito</Text>
                 </Flex>
               </Flex>
+
+              {paymentMethod === 'credit-card' && (
+                <Box>
+                  <Text fontSize="14px" fontWeight="700" color="gray.900" mb="6px">
+                    Parcelamento
+                  </Text>
+                  <Box
+                    as="select"
+                    value={installments}
+                    onChange={(event) => setInstallments(Number(event.target.value))}
+                    style={{
+                      width: '100%',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '9px 10px',
+                      fontSize: '14px',
+                      outline: 'none',
+                      background: 'white',
+                    }}
+                  >
+                    {Array.from({ length: 12 }).map((_, index) => {
+                      const installmentCount = index + 1;
+                      const totalWithInterest = calculateInstallmentTotal(finalTotal, installmentCount);
+                      const installmentValue = totalWithInterest / installmentCount;
+                      const hasInterest = installmentCount > 3;
+
+                      return (
+                        <option key={installmentCount} value={installmentCount}>
+                          {installmentCount}x de {formatCurrency(installmentValue)}{hasInterest ? ' com juros' : ' sem juros'}
+                        </option>
+                      );
+                    })}
+                  </Box>
+                  {interestAmount > 0 && (
+                    <Text fontSize="12px" color="gray.500" mt="6px">
+                      Juros do parcelamento: {formatCurrency(interestAmount)}
+                    </Text>
+                  )}
+                </Box>
+              )}
+
+              <Box>
+                <Text fontSize="14px" fontWeight="700" color="gray.900" mb="6px">
+                  Cupom
+                </Text>
+                <Flex gap="8px">
+                  <Box
+                    as="input"
+                    value={couponCode}
+                    onChange={(event) => handleCouponChange(event.target.value)}
+                    placeholder="Ex: XABLAU10"
+                    style={{
+                      width: '100%',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      padding: '9px 10px',
+                      fontSize: '14px',
+                      outline: 'none',
+                    }}
+                  />
+                  <Button borderRadius="8px" p="5px 10px" variant="outline" onClick={handleApplyCoupon}>
+                    Aplicar
+                  </Button>
+                </Flex>
+                {couponMessage && (
+                  <Text
+                    color={appliedCoupon ? 'green.600' : 'red.500'}
+                    fontSize="13px"
+                    fontWeight="600"
+                    mt="6px"
+                    overflowWrap="anywhere"
+                    wordBreak="break-word"
+                    whiteSpace="normal"
+                  >
+                    {couponMessage}
+                  </Text>
+                )}
+              </Box>
 
               <Box>
                 <Text fontSize="14px" fontWeight="700" color="gray.900" mb="6px">

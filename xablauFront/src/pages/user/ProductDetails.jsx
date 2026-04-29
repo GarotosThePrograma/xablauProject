@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { MdFavorite, MdFavoriteBorder, MdShoppingCart } from 'react-icons/md';
 import { Box, Button, Flex, IconButton, Image, Spinner, Text } from '@chakra-ui/react';
+import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { getProductById } from '../../features/products/products';
 import { useCartStore } from '../../store/useCartStore';
 import { useFavoritesStore } from '../../store/useFavoritesStore';
@@ -46,6 +47,7 @@ export function ProductDetails() {
   if (isLoading) {
     return (
       <Flex justify="center" align="center" minH="420px">
+        <PageLoadingBar />
         <Spinner color="#e27d35" size="xl" />
       </Flex>
     );

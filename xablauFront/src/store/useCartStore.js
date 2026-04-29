@@ -24,24 +24,31 @@ function normalizeCart(carrinho) {
 
 export const useCartStore = create((set, get) => ({
   cart: [],
+  isLoading: false,
 
   loadCart: async () => {
     const usuarioId = getUsuarioId();
 
     if (!usuarioId) {
-      set({ cart: [] });
+      set({ cart: [], isLoading: false });
       return;
     }
 
-    const response = await fetch(`${API_URL}/carrinho/${usuarioId}`);
-    const data = await response.json();
+    set({ isLoading: true });
 
-    if (!response.ok) {
-      set({ cart: [] });
-      return;
+    try {
+      const response = await fetch(`${API_URL}/carrinho/${usuarioId}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        set({ cart: [], isLoading: false });
+        return;
+      }
+
+      set({ cart: normalizeCart(data), isLoading: false });
+    } catch {
+      set({ cart: [], isLoading: false });
     }
-
-    set({ cart: normalizeCart(data) });
   },
 
   addToCart: async (product) => {

@@ -8,6 +8,7 @@ import { useFavoritesStore } from '../../store/useFavoritesStore';
 export function ProductCard({ product }) {
   const [added, setAdded] = useState(false);
   const [error, setError] = useState('');
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const addToCart = useCartStore((state) => state.addToCart);
   const favoriteIds = useFavoritesStore((state) => state.productIds);
@@ -70,12 +71,26 @@ export function ProductCard({ product }) {
         justify="center"
         p="16px"
       >
+        {!imageLoaded && (
+          <Box
+            position="absolute"
+            w="140px"
+            h="140px"
+            bg="gray.200"
+            borderRadius="8px"
+            animation="pulse 1.4s ease-in-out infinite"
+          />
+        )}
         <Image
           src={product.img}
           alt={product.name}
           boxSize="140px"
           objectFit="cover"
           borderRadius="8px"
+          opacity={imageLoaded ? 1 : 0}
+          transition="opacity 0.2s ease"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageLoaded(true)}
         />
       </Flex>
 

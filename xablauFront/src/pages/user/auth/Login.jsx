@@ -1,17 +1,17 @@
 import './RegisterLogin.css';
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { loginSchema } from './schemas/authSchema'
+import { PageLoadingBar } from '../../../components/common/PageLoadingBar';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useAdminAuthStore } from '../../../store/useAdminAuthStore';
 
 
 export function Login() {
-  const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const loginAdmin = useAdminAuthStore((state) => state.loginAdmin);
@@ -39,7 +39,7 @@ export function Login() {
       if (adminLoggedIn) {
         logout();
         setFeedback({ type: 'success', message: 'Login de administrador realizado com sucesso' });
-        setTimeout(() => navigate('/admin/produtos'), 700);
+        window.location.assign('/admin/produtos');
         return;
       }
 
@@ -66,7 +66,7 @@ export function Login() {
         });
 
         setFeedback({ type: 'success', message: data.mensagem || 'Login realizado com sucesso' });
-        setTimeout(() => navigate('/'), 700);
+        window.location.assign('/');
         return;
       }
 
@@ -81,6 +81,7 @@ export function Login() {
 
   return (
     <div className="login-wrapper">
+      {isSubmitting && <PageLoadingBar />}
       <div className="login-card">
         
         <div className="login-header">

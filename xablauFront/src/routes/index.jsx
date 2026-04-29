@@ -10,6 +10,7 @@ import { Cart } from '../pages/user/Cart'
 import { Orders } from '../pages/user/Orders'
 import { ProductDetails } from '../pages/user/ProductDetails'
 import { Favorites } from '../pages/user/Favorites'
+import { Search } from '../pages/user/Search'
 import { AdminProducts } from '../pages/admin/AdminProducts'
 import { useAdminAuthStore } from '../store/useAdminAuthStore'
 
@@ -36,6 +37,7 @@ export function AppRoutes() {
                     <Route path='/cart' element= { <Cart /> } />
                     <Route path='/orders' element= { <Orders /> } />
                     <Route path='/favorites' element= { <Favorites /> } />
+                    <Route path='/search' element= { <Search /> } />
                 </Route>
 
                 {/* ADMIN */}

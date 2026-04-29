@@ -34,3 +34,39 @@ body {
   background-color: aliceblue;
   padding-top: 124px;
 }
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes page-loading-bar {
+  0% {
+    transform: translateX(-110%);
+  }
+
+  100% {
+    transform: translateX(240%);
+  }
+}
+
+@keyframes carousel-fade {
+  0% {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

@@ -64,8 +64,25 @@ export function Orders() {
                 </Flex>
 
                 <Text fontSize="14px" color="gray.600">
-                  Pagamento: {order.paymentMethod === 'pix' ? 'PIX' : 'Cartão de crédito'}
+                  Pagamento: {order.paymentMethod === 'pix' ? 'PIX' : `Cartão de crédito em ${order.installments || 1}x`}
                 </Text>
+                {order.interest > 0 && (
+                  <Text fontSize="14px" color="gray.600">
+                    Juros do parcelamento: {formatCurrency(order.interest)}
+                  </Text>
+                )}
+                {order.coupon && (
+                  <Text
+                    fontSize="14px"
+                    color="green.600"
+                    fontWeight="700"
+                    overflowWrap="anywhere"
+                    wordBreak="break-word"
+                    whiteSpace="normal"
+                  >
+                    Cupom {order.coupon.code} - {formatCurrency(order.discount)}
+                  </Text>
+                )}
                 <Text fontSize="14px" color="gray.600">
                   Entrega: CEP {order.cep} - {order.shipping.label} ({formatCurrency(order.shipping.value)})
                 </Text>
@@ -92,7 +109,7 @@ export function Orders() {
             </Text>
           </Box>
         ) : (
-          <Flex direction="column" align="flex-start" gap="14px">
+          <Flex direction="column" align="center" gap="14px">
             <Text color="gray.600">
               Entre na sua conta para acompanhar seus pedidos.
             </Text>
@@ -101,6 +118,7 @@ export function Orders() {
               to="/login"
               bg="linear-gradient(to top, #004d8e, #3695e3)"
               color="white"
+              p="10px"
               borderRadius="8px"
               _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
             >

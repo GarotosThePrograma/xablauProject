@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Xablau } from '../components/common/Xablau.jsx';
 import { UserCircle } from 'lucide-react';
 import { MdShoppingCart, MdFavorite, MdMenu, MdClose } from 'react-icons/md';
@@ -10,8 +10,13 @@ import { useAuthStore } from '../store/useAuthStore.js';
 import { useFavoritesStore } from '../store/useFavoritesStore.js';
 
 export function NavBar() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const searchTerm = location.pathname === '/search'
+    ? new URLSearchParams(location.search).get('q') ?? ''
+    : '';
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const nome = useAuthStore((state) => state.nome);
   const logout = useAuthStore((state) => state.logout);
@@ -23,6 +28,14 @@ export function NavBar() {
     clearFavorites();
     setAccountOpen(false);
     setMenuOpen(false);
+  };
+
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
+    const trimmedValue = value.trim();
+    const nextPath = trimmedValue ? `/search?q=${encodeURIComponent(value)}` : '/search';
+
+    navigate(nextPath, { replace: location.pathname === '/search' });
   };
 
   return (
@@ -54,6 +67,8 @@ export function NavBar() {
         {/* search */}
         <Box flexGrow={1} mx={4} maxW="700px">
           <Input
+            value={searchTerm}
+            onChange={handleSearchChange}
             placeholder="Busque na Xablau!"
             bg="aliceblue"
             border="1.5px solid lightgrey"
