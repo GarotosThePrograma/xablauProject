@@ -1,13 +1,19 @@
 import './RegisterLogin.css';
 
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { loginSchema } from './schemas/authSchema'
+import { useAuthStore } from '../../../store/useAuthStore';
 
 
 export function Login() {
+  const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -20,28 +26,41 @@ export function Login() {
   });
 
   const enviarDados = async (dadosValidados) => {
-    const response = await fetch('http://localhost:5002/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: dadosValidados.email,
-        senha: dadosValidados.password,
-      }),
-    });
+    setIsSubmitting(true);
+    setFeedback({ type: '', message: '' });
 
-    const data = await response.json();
+    try {
+      const response = await fetch('http://localhost:5002/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: dadosValidados.email,
+          senha: dadosValidados.password,
+        }),
+      });
 
-    if (data.sucesso) {
-      localStorage.setItem('usuarioId', data.usuarioId);
-      localStorage.setItem('nome', data.nome);
+      const data = await response.json();
 
-      console.log('Login realizado com sucesso', data);
-      return;
+      if (data.sucesso) {
+        login({
+          usuarioId: data.usuarioId,
+          nome: data.nome,
+          email: data.email,
+        });
+
+        setFeedback({ type: 'success', message: data.mensagem || 'Login realizado com sucesso' });
+        setTimeout(() => navigate('/'), 700);
+        return;
+      }
+
+      setFeedback({ type: 'error', message: data.mensagem || 'Email ou senha inválidos' });
+    } catch {
+      setFeedback({ type: 'error', message: 'Não foi possível conectar ao servidor' });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    console.log('Erro no login', data);
   };
 
 
@@ -88,7 +107,15 @@ export function Login() {
             {errors.password && <span className='incorrect'>{errors.password.message}</span>}
           </div>
 
-          <button type="submit" className="btn-primary">Entrar</button>
+          {feedback.message && (
+            <span className={`auth-message ${feedback.type}`}>
+              {feedback.message}
+            </span>
+          )}
+
+          <button type="submit" className="btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
+          </button>
 
           <p>
             Não tem uma conta? <Link to="/register" className='not-registered-yet'>Cadastre-se</Link>

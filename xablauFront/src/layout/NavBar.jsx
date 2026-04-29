@@ -1,27 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Xablau } from '../components/common/Xablau.jsx';
 import { UserCircle } from 'lucide-react';
 import { MdShoppingCart, MdFavorite, MdMenu, MdClose } from 'react-icons/md';
-import { Box, Flex, Input, IconButton } from '@chakra-ui/react';
+import { Box, Flex, Input, IconButton, Text } from '@chakra-ui/react';
 import { FlexHoverOrange } from '@/components/ui/FlexHoverOrange.jsx';
 import { CartIcon } from '../components/common/CartIcon.jsx';
+import { useAuthStore } from '../store/useAuthStore.js';
+import { useFavoritesStore } from '../store/useFavoritesStore.js';
 
 export function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const nome = useAuthStore((state) => state.nome);
+  const logout = useAuthStore((state) => state.logout);
+  const clearFavorites = useFavoritesStore((state) => state.clearFavorites);
+  const firstName = nome ? nome.split(' ')[0] : 'Minha conta';
 
-  useEffect(() => {
-    const resizeTab = () => setIsMobile(window.innerWidth < 600);
-    resizeTab();
-    window.addEventListener('resize', resizeTab);
-    return () => window.removeEventListener('resize', resizeTab);
-  }, []);
-
-  // fecha menu se redimensionar pra desktop
-  useEffect(() => {
-    if (!isMobile) setMenuOpen(false);
-  }, [isMobile]);
+  const handleLogout = () => {
+    logout();
+    clearFavorites();
+    setAccountOpen(false);
+    setMenuOpen(false);
+  };
 
   return (
     <Box
@@ -72,24 +74,87 @@ export function NavBar() {
           gap={5}
           display={{ base: 'none', md: 'flex'}}  
         >
-          <Flex
-            as={Link}
-            to="/login"
-            align="center"
-            gap={2}
-            color="white"
-            textDecoration="none"
-          >
-            <FlexHoverOrange>
+          {isLoggedIn ? (
+            <Box
+              position="relative"
+              onMouseEnter={() => setAccountOpen(true)}
+              onMouseLeave={() => setAccountOpen(false)}
+            >
+              <FlexHoverOrange color="white">
                 <UserCircle
                   size={42}
                   strokeWidth={1.5}
                 />
-                Entre<br />ou Cadastre-se
-            </FlexHoverOrange>
-          </Flex>
+                <Text as="span" fontSize="14px" lineHeight="1.1">
+                  Olá,<br />{firstName}
+                </Text>
+              </FlexHoverOrange>
 
-          <FlexHoverOrange gap={4} color="white">
+              {accountOpen && (
+                <Box
+                  position="absolute"
+                  right="0"
+                  top="100%"
+                  pt="10px"
+                  minW="170px"
+                >
+                  <Flex
+                    direction="column"
+                    bg="white"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    borderRadius="8px"
+                    boxShadow="0 12px 28px rgba(0,0,0,0.16)"
+                    color="gray.800"
+                    overflow="hidden"
+                  >
+                    <Box
+                      as={Link}
+                      to="/orders"
+                      px="14px"
+                      py="10px"
+                      fontSize="14px"
+                      _hover={{ bg: 'gray.50', color: '#e27d35' }}
+                    >
+                      Meus pedidos
+                    </Box>
+                    <Box
+                      as="button"
+                      type="button"
+                      px="14px"
+                      py="10px"
+                      textAlign="left"
+                      fontSize="14px"
+                      cursor="pointer"
+                      onClick={handleLogout}
+                      _hover={{ bg: 'gray.50', color: '#e27d35' }}
+                    >
+                      Sair
+                    </Box>
+                  </Flex>
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Flex
+              as={Link}
+              to="/login"
+              align="center"
+              gap={2}
+              color="white"
+              textDecoration="none"
+            >
+              <FlexHoverOrange color="white">
+                  <UserCircle
+                    size={42}
+                    strokeWidth={1.5}
+                  />
+                  Entre<br />ou Cadastre-se
+              </FlexHoverOrange>
+            </Flex>
+          )}
+
+          <FlexHoverOrange as={Link} to="/favorites" gap={4} color="white">
             <MdFavorite size={30}  />
           </FlexHoverOrange>
 
@@ -128,26 +193,87 @@ export function NavBar() {
         transition="max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease"
       >
         <Flex justify="space-between" align="center" w='100%'>
-          <Flex
-            as={Link}
-            to="/login"
-            justify="center"
-            align="center"
-            gap={2}
-            color="white"
-            textDecoration="none"
-            onClick={() => setMenuOpen(false)}
-          >
-            <FlexHoverOrange>
-              <Flex justify='center' align='center' gap='5px'>
-                <UserCircle size={36} strokeWidth={1.5} />
-                <Box fontSize='13px'>Entre ou<br />Cadastre-se</Box>
-              </Flex>
-            </FlexHoverOrange>
-          </Flex>
+          {isLoggedIn ? (
+            <Box
+              position="relative"
+              onMouseEnter={() => setAccountOpen(true)}
+              onMouseLeave={() => setAccountOpen(false)}
+            >
+              <FlexHoverOrange color="white">
+                <Flex justify='center' align='center' gap='5px'>
+                  <UserCircle size={36} strokeWidth={1.5} />
+                  <Box fontSize='13px'>Olá,<br />{firstName}</Box>
+                </Flex>
+              </FlexHoverOrange>
+
+              {accountOpen && (
+                <Box
+                  position="absolute"
+                  left="0"
+                  top="100%"
+                  pt="10px"
+                  minW="160px"
+                >
+                  <Flex
+                    direction="column"
+                    bg="white"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    borderRadius="8px"
+                    boxShadow="0 12px 28px rgba(0,0,0,0.16)"
+                    color="gray.800"
+                    overflow="hidden"
+                  >
+                    <Box
+                      as={Link}
+                      to="/orders"
+                      px="14px"
+                      py="10px"
+                      fontSize="14px"
+                      onClick={() => setMenuOpen(false)}
+                      _hover={{ bg: 'gray.50', color: '#e27d35' }}
+                    >
+                      Meus pedidos
+                    </Box>
+                    <Box
+                      as="button"
+                      type="button"
+                      px="14px"
+                      py="10px"
+                      textAlign="left"
+                      fontSize="14px"
+                      cursor="pointer"
+                      onClick={handleLogout}
+                      _hover={{ bg: 'gray.50', color: '#e27d35' }}
+                    >
+                      Sair
+                    </Box>
+                  </Flex>
+                </Box>
+              )}
+            </Box>
+          ) : (
+            <Flex
+              as={Link}
+              to="/login"
+              justify="center"
+              align="center"
+              gap={2}
+              color="white"
+              textDecoration="none"
+              onClick={() => setMenuOpen(false)}
+            >
+              <FlexHoverOrange color="white">
+                <Flex justify='center' align='center' gap='5px'>
+                  <UserCircle size={36} strokeWidth={1.5} />
+                  <Box fontSize='13px'>Entre ou<br />Cadastre-se</Box>
+                </Flex>
+              </FlexHoverOrange>
+            </Flex>
+          )}
           
           <Flex gap={2} align='center' color='white'>
-            <FlexHoverOrange>
+            <FlexHoverOrange as={Link} to="/favorites" onClick={() => setMenuOpen(false)}>
               <MdFavorite size={30} />
             </FlexHoverOrange>
 
