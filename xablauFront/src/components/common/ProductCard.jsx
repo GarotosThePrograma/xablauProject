@@ -21,7 +21,7 @@ export function ProductCard({ product }) {
       setAdded(true);
       setTimeout(() => setAdded(false), 1000);
     } catch {
-      setError('Faça login para adicionar ao carrinho');
+      setError(localStorage.getItem('usuarioId') ? 'Quantidade máxima em estoque atingida' : 'Faça login para adicionar ao carrinho');
       setTimeout(() => setError(''), 2200);
     }
   };

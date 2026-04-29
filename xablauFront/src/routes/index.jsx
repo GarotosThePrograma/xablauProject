@@ -1,5 +1,5 @@
 // permite o react ler varias paginas
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Outlet, Routes, Route } from 'react-router-dom'
 
 import { UserLayout } from '../layouts/UserLayout'
 import { AdminLayout } from '../layouts/AdminLayout'
@@ -11,7 +11,17 @@ import { Orders } from '../pages/user/Orders'
 import { ProductDetails } from '../pages/user/ProductDetails'
 import { Favorites } from '../pages/user/Favorites'
 import { AdminProducts } from '../pages/admin/AdminProducts'
+import { useAdminAuthStore } from '../store/useAdminAuthStore'
 
+function AdminProtectedRoute() {
+    const isAdminLoggedIn = useAdminAuthStore((state) => state.isAdminLoggedIn)
+
+    if (!isAdminLoggedIn) {
+        return <Navigate to="/login" replace />
+    }
+
+    return <Outlet />
+}
 
 export function AppRoutes() {
     return (
@@ -29,8 +39,10 @@ export function AppRoutes() {
                 </Route>
 
                 {/* ADMIN */}
-                <Route element= { <AdminLayout /> }>
-                    <Route path='/admin/produtos' element= { <AdminProducts /> } />
+                <Route element= { <AdminProtectedRoute /> }>
+                    <Route element= { <AdminLayout /> }>
+                        <Route path='/admin/produtos' element= { <AdminProducts /> } />
+                    </Route>
                 </Route>
             </Routes> 
 

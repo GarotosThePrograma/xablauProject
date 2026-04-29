@@ -7,11 +7,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { loginSchema } from './schemas/authSchema'
 import { useAuthStore } from '../../../store/useAuthStore';
+import { useAdminAuthStore } from '../../../store/useAdminAuthStore';
 
 
 export function Login() {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
+  const loginAdmin = useAdminAuthStore((state) => state.loginAdmin);
+  const logoutAdmin = useAdminAuthStore((state) => state.logoutAdmin);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,6 +34,17 @@ export function Login() {
     setFeedback({ type: '', message: '' });
 
     try {
+      const adminLoggedIn = loginAdmin(dadosValidados.email, dadosValidados.password);
+
+      if (adminLoggedIn) {
+        logout();
+        setFeedback({ type: 'success', message: 'Login de administrador realizado com sucesso' });
+        setTimeout(() => navigate('/admin/produtos'), 700);
+        return;
+      }
+
+      logoutAdmin();
+
       const response = await fetch('http://localhost:5002/api/auth/login', {
         method: 'POST',
         headers: {

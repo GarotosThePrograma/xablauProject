@@ -36,6 +36,7 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
                 Nome = item.Produto.Nome,
                 ImagemUrl = item.Produto.ImagemUrl,
                 Preco = item.Produto.Preco,
+                Estoque = item.Produto.Estoque,
                 Quantidade = item.Quantidade,
                 Subtotal = item.Produto.Preco * item.Quantidade
             }).ToList()
@@ -73,6 +74,14 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         /* verifica se o produto já está no carrinho, se não existe cria novo, se já existe soma */
         var itemExistente = carrinho.Itens
             .FirstOrDefault(itemExistente => itemExistente.ProdutoId == request.ProdutoId);
+
+        var quantidadeAtual = itemExistente?.Quantidade ?? 0;
+        var novaQuantidade = quantidadeAtual + request.Quantidade;
+
+        if (produto.Estoque <= 0 || novaQuantidade > produto.Estoque)
+        {
+            return null;
+        }
 
         if (itemExistente is null)
         {
@@ -147,6 +156,14 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         }
         else
         {
+            var produto = await _context.Produtos
+                .FirstOrDefaultAsync(produto => produto.Id == produtoId);
+
+            if (produto is null || request.Quantidade > produto.Estoque)
+            {
+                return null;
+            }
+
             item.Quantidade = request.Quantidade;
         }
 

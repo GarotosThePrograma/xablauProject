@@ -1,12 +1,21 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { useAdminAuthStore } from '../store/useAdminAuthStore';
 
 export function AdminLayout() {
+    const navigate = useNavigate();
+    const logoutAdmin = useAdminAuthStore((state) => state.logoutAdmin);
+
     const scrollToProducts = () => {
         document.getElementById('admin-products-list')?.scrollIntoView({
             behavior: 'smooth',
             block: 'start',
         });
+    };
+
+    const handleLogout = () => {
+        logoutAdmin();
+        navigate('/login');
     };
 
     return (
@@ -42,6 +51,15 @@ export function AdminLayout() {
                         _hover={{ color: '#e27d35' }}
                     >
                         Produtos
+                    </Box>
+                    <Box
+                        as="button"
+                        type="button"
+                        cursor="pointer"
+                        onClick={handleLogout}
+                        _hover={{ color: '#e27d35' }}
+                    >
+                        Sair
                     </Box>
                 </Flex>
             </Flex>

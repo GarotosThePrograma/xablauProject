@@ -1,12 +1,16 @@
 import './RegisterLogin.css';
 
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { registerSchema } from './schemas/authSchema';
 
 export function Register() {
+  const navigate = useNavigate();
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
@@ -19,26 +23,36 @@ export function Register() {
   });
 
   const enviarDados = async (dadosValidados) => {
-    const response = await fetch('http://localhost:5002/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        nome: dadosValidados.name,
-        email: dadosValidados.email,
-        senha: dadosValidados.password,
-      }),
-    });
+    setIsSubmitting(true);
+    setFeedback({ type: '', message: '' });
 
-    const data = await response.json();
+    try {
+      const response = await fetch('http://localhost:5002/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nome: dadosValidados.name,
+          email: dadosValidados.email,
+          senha: dadosValidados.password,
+        }),
+      });
 
-    if (data.sucesso) {
-      console.log('Cadastro realizado com sucesso', data);
-      return;
+      const data = await response.json();
+
+      if (data.sucesso) {
+        setFeedback({ type: 'success', message: `${data.mensagem || 'Cadastro realizado com sucesso'} Redirecionando para o login...` });
+        setTimeout(() => navigate('/login'), 1500);
+        return;
+      }
+
+      setFeedback({ type: 'error', message: data.mensagem || 'Não foi possível realizar o cadastro' });
+    } catch {
+      setFeedback({ type: 'error', message: 'Não foi possível conectar ao servidor' });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    console.log('Erro no cadastro', data);
   };
 
 
@@ -99,7 +113,15 @@ export function Register() {
 
           </div>
 
-          <button type="submit" className="btn-primary">Entrar</button>
+          {feedback.message && (
+            <span className={`auth-message ${feedback.type}`}>
+              {feedback.message}
+            </span>
+          )}
+
+          <button type="submit" className="btn-primary" disabled={isSubmitting || feedback.type === 'success'}>
+            {isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
+          </button>
 
           <p>
             Já tem uma conta? <Link to="/login" className='not-registered-yet'>Entre</Link>

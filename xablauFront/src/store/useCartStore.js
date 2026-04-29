@@ -16,6 +16,7 @@ function normalizeCart(carrinho) {
     name: item.nome,
     img: item.imagemUrl,
     price: item.preco,
+    stock: item.estoque,
     quantity: item.quantidade,
     subtotal: item.subtotal,
   }));
@@ -50,6 +51,12 @@ export const useCartStore = create((set, get) => ({
       throw new Error('Usuário não está logado');
     }
 
+    const item = get().cart.find((cartItem) => cartItem.id === product.id);
+
+    if (item && product.stock !== undefined && item.quantity >= product.stock) {
+      throw new Error('Quantidade máxima em estoque atingida');
+    }
+
     const response = await fetch(`${API_URL}/carrinho/${usuarioId}/itens`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,7 +69,7 @@ export const useCartStore = create((set, get) => ({
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error('Erro ao adicionar item no carrinho');
+      throw new Error('Quantidade indisponível em estoque');
     }
 
     set({ cart: normalizeCart(data) });

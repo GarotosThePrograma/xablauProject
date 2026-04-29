@@ -1,5 +1,5 @@
 import { Flex, Image, Heading, Text, Span, IconButton } from "@chakra-ui/react";
-import { FaTrash, FaPlus, FaMinus } from 'react-icons/fa';
+import { FaTrash, FaPlus } from 'react-icons/fa';
 import { useCartStore } from "../../store/useCartStore";
 
 
@@ -69,7 +69,7 @@ export function CartProductCard({ product }) {
                             minW="auto"
                             h="auto"
                             m='4px'
-                            isDisabled={ product.quantity >= product.stock }
+                            disabled={ product.quantity >= product.stock }
                             _hover={{ transform: 'translateY(-2px)', color: '#9b5624' }}
                             onClick={() => addtoCart(product)}
                         >
