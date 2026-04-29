@@ -161,4 +161,26 @@ export const useCartStore = create((set, get) => ({
 
     set({ cart: normalizeCart(data) });
   },
+
+  finishPurchase: async () => {
+    const usuarioId = getUsuarioId();
+
+    if (!usuarioId) {
+      throw new Error('Usuário não está logado');
+    }
+
+    const response = await fetch(`${API_URL}/carrinho/${usuarioId}/finalizar`, {
+      method: 'POST',
+    });
+
+    const responseText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(responseText || 'Não foi possível finalizar a compra. Verifique o estoque dos itens.');
+    }
+
+    const data = responseText ? JSON.parse(responseText) : null;
+
+    set({ cart: normalizeCart(data) });
+  },
 }));

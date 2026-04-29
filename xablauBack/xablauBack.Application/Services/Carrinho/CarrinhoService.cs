@@ -191,4 +191,101 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         return await ObterCarrinhoPorUsuarioAsync(usuarioId);
     }
 
+    public async Task<FinalizarCompraResult> FinalizarCompraAsync(int usuarioId)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var carrinho = await _context.Carrinhos
+            .Include(carrinho => carrinho.Itens)
+            .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId);
+
+        if (carrinho is null)
+        {
+            return new FinalizarCompraResult
+            {
+                Sucesso = false,
+                Mensagem = "Carrinho não encontrado."
+            };
+        }
+
+        if (carrinho.Itens.Count == 0)
+        {
+            return new FinalizarCompraResult
+            {
+                Sucesso = false,
+                Mensagem = "Seu carrinho está vazio."
+            };
+        }
+
+        if (carrinho.Itens.Any(item => item.Quantidade <= 0))
+        {
+            return new FinalizarCompraResult
+            {
+                Sucesso = false,
+                Mensagem = "Existe um item com quantidade inválida no carrinho."
+            };
+        }
+
+        var itensAgrupados = carrinho.Itens
+            .GroupBy(item => item.ProdutoId)
+            .Select(grupo => new
+            {
+                ProdutoId = grupo.Key,
+                Quantidade = grupo.Sum(item => item.Quantidade)
+            })
+            .ToList();
+
+        var produtoIds = itensAgrupados.Select(item => item.ProdutoId).ToList();
+        var produtos = await _context.Produtos
+            .Where(produto => produtoIds.Contains(produto.Id))
+            .ToDictionaryAsync(produto => produto.Id);
+
+        foreach (var item in itensAgrupados)
+        {
+            if (!produtos.TryGetValue(item.ProdutoId, out var produto))
+            {
+                return new FinalizarCompraResult
+                {
+                    Sucesso = false,
+                    Mensagem = "Um produto do carrinho não existe mais."
+                };
+            }
+
+            if (produto.Estoque <= 0)
+            {
+                return new FinalizarCompraResult
+                {
+                    Sucesso = false,
+                    Mensagem = $"O produto {produto.Nome} está esgotado."
+                };
+            }
+
+            if (item.Quantidade > produto.Estoque)
+            {
+                return new FinalizarCompraResult
+                {
+                    Sucesso = false,
+                    Mensagem = $"Estoque insuficiente para {produto.Nome}. Disponível: {produto.Estoque}."
+                };
+            }
+        }
+
+        foreach (var item in itensAgrupados)
+        {
+            produtos[item.ProdutoId].Estoque -= item.Quantidade;
+        }
+
+        _context.ItensCarrinho.RemoveRange(carrinho.Itens);
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        return new FinalizarCompraResult
+        {
+            Sucesso = true,
+            Mensagem = "Compra finalizada com sucesso.",
+            Carrinho = await ObterCarrinhoPorUsuarioAsync(usuarioId)
+        };
+    }
+
 }

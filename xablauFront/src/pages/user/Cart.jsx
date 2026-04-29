@@ -104,6 +104,7 @@ export function Cart() {
   const isLoading = useCartStore((state) => state.isLoading);
   const loadCart = useCartStore((state) => state.loadCart);
   const clearCart = useCartStore((state) => state.clearCart);
+  const finishPurchase = useCartStore((state) => state.finishPurchase);
   const addOrder = useOrdersStore((state) => state.addOrder);
   const coupons = useCouponsStore((state) => state.coupons);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -171,7 +172,7 @@ export function Cart() {
     setCheckoutMessage('');
 
     try {
-      addOrder({
+      const order = {
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
         items: cart,
@@ -184,11 +185,14 @@ export function Cart() {
         interest: interestAmount,
         subtotal: totalAmount,
         total: paymentTotal,
-      });
-      await clearCart();
+      };
+
+      await finishPurchase();
+      addOrder(order);
       navigate('/orders');
-    } catch {
-      setCheckoutMessage('Não foi possível finalizar a compra agora.');
+    } catch (error) {
+      await loadCart();
+      setCheckoutMessage(error.message || 'Não foi possível finalizar a compra agora.');
     } finally {
       setIsFinishing(false);
     }

@@ -67,6 +67,19 @@ public class CarrinhoController : ControllerBase /* rotas do carrinho, CRUD */
         return Ok(carrinho);
     }
 
+    [HttpPost("{usuarioId:int}/finalizar")]
+    public async Task<IActionResult> FinalizarCompra(int usuarioId)
+    {
+        var resultado = await _carrinhoService.FinalizarCompraAsync(usuarioId);
+
+        if (!resultado.Sucesso)
+        {
+            return BadRequest(resultado.Mensagem);
+        }
+
+        return Ok(resultado.Carrinho);
+    }
+
 
     /* PUT(UPDATE) /api/carrinho/{id do usuário}/itens/{id do item do usuário} */
     [HttpPut("{usuarioId:int}/itens/{produtoId:int}")]

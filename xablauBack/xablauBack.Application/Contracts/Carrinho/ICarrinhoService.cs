@@ -7,5 +7,6 @@ public interface ICarrinhoService /* define os métodos que o service precisa te
     Task<CarrinhoResponse?> RemoverItemAsync(int usuarioId, int produtoId);
     Task<CarrinhoResponse?> AtualizarQuantidadeAsync(int usuarioId, int produtoId, AtualizarQuantidadeItemRequest request);
     Task<CarrinhoResponse?> LimparCarrinhoAsync(int usuarioId);
+    Task<FinalizarCompraResult> FinalizarCompraAsync(int usuarioId);
 
 }
