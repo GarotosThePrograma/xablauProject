@@ -7,7 +7,14 @@ export function AdminLayout() {
     const logoutAdmin = useAdminAuthStore((state) => state.logoutAdmin);
 
     const scrollToProducts = () => {
-        document.getElementById('admin-products-list')?.scrollIntoView({
+        const productsList = document.getElementById('admin-products-list');
+
+        if (!productsList) {
+            navigate('/admin/produtos');
+            return;
+        }
+
+        productsList.scrollIntoView({
             behavior: 'smooth',
             block: 'start',
         });
@@ -51,6 +58,9 @@ export function AdminLayout() {
                         _hover={{ color: '#e27d35' }}
                     >
                         Produtos
+                    </Box>
+                    <Box as={Link} to="/admin/pedidos" _hover={{ color: '#e27d35' }}>
+                        Pedidos
                     </Box>
                     <Box
                         as="button"

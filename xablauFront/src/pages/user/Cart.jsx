@@ -4,7 +4,6 @@ import { CartProductCard } from "../../components/common/CartProductCard";
 import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { Flex, Text, Button, Box } from "@chakra-ui/react";
 import { useCartStore } from "../../store/useCartStore";
-import { useOrdersStore } from '../../store/useOrdersStore';
 import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
 
 function formatCurrency(value) {
@@ -105,7 +104,6 @@ export function Cart() {
   const loadCart = useCartStore((state) => state.loadCart);
   const clearCart = useCartStore((state) => state.clearCart);
   const finishPurchase = useCartStore((state) => state.finishPurchase);
-  const addOrder = useOrdersStore((state) => state.addOrder);
   const coupons = useCouponsStore((state) => state.coupons);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pix');
@@ -172,23 +170,16 @@ export function Cart() {
     setCheckoutMessage('');
 
     try {
-      const order = {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString(),
-        items: cart,
+      await finishPurchase({
         paymentMethod,
         cep: cepDigits,
         shipping,
-        coupon: appliedCoupon,
+        couponCode: appliedCoupon?.code ?? null,
         discount: discountAmount,
         installments: paymentMethod === 'credit-card' ? installments : 1,
         interest: interestAmount,
-        subtotal: totalAmount,
         total: paymentTotal,
-      };
-
-      await finishPurchase();
-      addOrder(order);
+      });
       navigate('/orders');
     } catch (error) {
       await loadCart();
@@ -306,6 +297,7 @@ export function Cart() {
           borderRadius='14px'
           p='24px'
           w='100%'
+          minW='0'
           gap='12px'
           marginTop='124px'
         >
@@ -485,8 +477,8 @@ export function Cart() {
                   as="input"
                   value={cep}
                   onChange={(event) => setCep(event.target.value)}
-                  placeholder="Ex: 90010-150"
-                  maxLength="9"
+                  placeholder="Ex: 90010150"
+                  maxLength="8"
                   style={{
                     width: '100%',
                     border: '1px solid #cbd5e1',
@@ -499,7 +491,16 @@ export function Cart() {
               </Box>
 
               {checkoutMessage && (
-                <Text color="red.500" fontSize="13px" fontWeight="600">
+                <Text
+                  color="red.500"
+                  fontSize="13px"
+                  fontWeight="600"
+                  maxW="100%"
+                  minW="0"
+                  overflowWrap="anywhere"
+                  wordBreak="break-word"
+                  whiteSpace="normal"
+                >
                   {checkoutMessage}
                 </Text>
               )}

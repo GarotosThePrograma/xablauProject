@@ -2,6 +2,7 @@ import '../../index.css'
 
 import { Box, Button, Flex, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { ProductCard } from '../../components/common/ProductCard';
 import { getProducts } from '../../features/products/products';
@@ -37,6 +38,7 @@ function ProductCardSkeleton() {
 }
 
 function OffersCarousel({ products }) {
+  const navigate = useNavigate();
   const coupons = useCouponsStore((state) => state.coupons);
   const activeCoupons = coupons.filter((coupon) => !isCouponExpired(coupon));
   const offerProducts = products.filter((product) => product.stock > 0).slice(0, 4);
@@ -52,6 +54,7 @@ function OffersCarousel({ products }) {
     })),
     ...offerProducts.map((product) => ({
       id: `product-${product.id}`,
+      productId: product.id,
       type: 'product',
       title: product.name,
       subtitle: product.price.toLocaleString('pt-BR', {
@@ -73,18 +76,34 @@ function OffersCarousel({ products }) {
     }, 3600);
 
     return () => clearInterval(intervalId);
-  }, [slides.length]);
+  }, [slides.length, currentSlide]);
 
   if (slides.length === 0) {
     return null;
   }
 
   const slide = slides[currentSlide];
+  const isProductSlide = slide.type === 'product';
   const goToPreviousSlide = () => {
     setCurrentSlide((current) => (current === 0 ? slides.length - 1 : current - 1));
   };
   const goToNextSlide = () => {
     setCurrentSlide((current) => (current + 1) % slides.length);
+  };
+  const openProductDetails = () => {
+    if (isProductSlide) {
+      navigate(`/product/${slide.productId}`);
+    }
+  };
+  const handleSlideKeyDown = (event) => {
+    if (!isProductSlide) {
+      return;
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      openProductDetails();
+    }
   };
 
   return (
@@ -99,7 +118,9 @@ function OffersCarousel({ products }) {
     >
       <Flex
         key={slide.id}
-        minH={{ base: '220px', md: '260px' }}
+        role={isProductSlide ? 'button' : undefined}
+        tabIndex={isProductSlide ? 0 : undefined}
+        h={{ base: '240px', md: '280px' }}
         align="center"
         justify="space-between"
         gap="20px"
@@ -107,6 +128,10 @@ function OffersCarousel({ products }) {
         bg="linear-gradient(135deg, #004d8e 0%, #3695e3 58%, #e27d35 100%)"
         color="white"
         animation="carousel-fade 0.42s ease"
+        cursor={isProductSlide ? 'pointer' : 'default'}
+        overflow="hidden"
+        onClick={openProductDetails}
+        onKeyDown={handleSlideKeyDown}
       >
         <Box maxW="620px" minW="0" pr={{ base: '42px', md: '0' }}>
           <Text fontSize="13px" fontWeight="800" textTransform="uppercase" letterSpacing="0">
@@ -120,6 +145,12 @@ function OffersCarousel({ products }) {
             overflowWrap="anywhere"
             wordBreak="break-word"
             whiteSpace="normal"
+            style={{
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+              overflow: 'hidden',
+            }}
           >
             {slide.title}
           </Text>
@@ -130,6 +161,12 @@ function OffersCarousel({ products }) {
             overflowWrap="anywhere"
             wordBreak="break-word"
             whiteSpace="normal"
+            style={{
+              display: '-webkit-box',
+              WebkitBoxOrient: 'vertical',
+              WebkitLineClamp: 2,
+              overflow: 'hidden',
+            }}
           >
             {slide.subtitle}
           </Text>
@@ -166,7 +203,10 @@ function OffersCarousel({ products }) {
             fontSize="22px"
             fontWeight="900"
             boxShadow="0 8px 20px rgba(0,0,0,0.18)"
-            onClick={goToPreviousSlide}
+            onClick={(event) => {
+              event.stopPropagation();
+              goToPreviousSlide();
+            }}
             _hover={{ bg: '#e27d3590' }}
           >
             {'<'}
@@ -185,13 +225,16 @@ function OffersCarousel({ products }) {
             fontSize="22px"
             fontWeight="900"
             boxShadow="0 8px 20px rgba(0,0,0,0.18)"
-            onClick={goToNextSlide}
+            onClick={(event) => {
+              event.stopPropagation();
+              goToNextSlide();
+            }}
             _hover={{ bg: '#e27d3590' }}
           >
             {'>'}
           </Button>
 
-          <Flex justify="center" align="center" gap="8px" p="12px">
+          <Flex justify="center" align="center" gap="8px" h="48px">
             <Flex gap="8px">
               {slides.map((item, index) => (
                 <Box
@@ -205,7 +248,10 @@ function OffersCarousel({ products }) {
                   bg={index === currentSlide ? '#e27d35' : 'gray.300'}
                   transition="all 0.2s"
                   cursor="pointer"
-                  onClick={() => setCurrentSlide(index)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setCurrentSlide(index);
+                  }}
                 />
               ))}
             </Flex>

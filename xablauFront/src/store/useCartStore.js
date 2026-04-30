@@ -162,7 +162,7 @@ export const useCartStore = create((set, get) => ({
     set({ cart: normalizeCart(data) });
   },
 
-  finishPurchase: async () => {
+  finishPurchase: async (checkoutData) => {
     const usuarioId = getUsuarioId();
 
     if (!usuarioId) {
@@ -171,6 +171,18 @@ export const useCartStore = create((set, get) => ({
 
     const response = await fetch(`${API_URL}/carrinho/${usuarioId}/finalizar`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        metodoPagamento: checkoutData.paymentMethod,
+        cep: checkoutData.cep,
+        freteLabel: checkoutData.shipping.label,
+        freteValor: checkoutData.shipping.value,
+        cupomCodigo: checkoutData.couponCode,
+        desconto: checkoutData.discount,
+        parcelas: checkoutData.installments,
+        juros: checkoutData.interest,
+        total: checkoutData.total,
+      }),
     });
 
     const responseText = await response.text();
@@ -181,6 +193,7 @@ export const useCartStore = create((set, get) => ({
 
     const data = responseText ? JSON.parse(responseText) : null;
 
-    set({ cart: normalizeCart(data) });
+    set({ cart: [] });
+    return data;
   },
 }));

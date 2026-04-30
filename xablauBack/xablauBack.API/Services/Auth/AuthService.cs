@@ -35,19 +35,19 @@ public class AuthService : IAuthService /* valida tudo conforme as regras de neg
                 Mensagem = "Email obrigatório"
             };
         }
-        
+
         if (string.IsNullOrWhiteSpace(request.Senha))
         {
             return new RegisterResult
             {
                 Sucesso = false,
                 Mensagem = "Senha obrigatória"
-            };      
+            };
         }
 
         var emailJaExiste = await _context.Usuarios /* _context.Usuarios representa a tabela de usuários do banco */
             .AnyAsync(usuario => usuario.Email == request.Email); /* verifica no banco se algum usuário tem o mesmo email */
-        
+
         if(emailJaExiste)
         {
             return new RegisterResult
@@ -148,5 +148,4 @@ public class AuthService : IAuthService /* valida tudo conforme as regras de neg
 
         return CryptographicOperations.FixedTimeEquals(hashDigitado, hashSalvo); /* se o hash antigo bater com o hash atual retun true */
     }
-    
 }

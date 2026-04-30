@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using xablauBack.Application.Contracts.Carrinho;
+using xablauBack.Application.Contracts.Pedidos;
 using xablauBack.Domain.Entities;
 using xablauBack.Infrastructure.Data;
 
@@ -62,7 +63,7 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         {
             return null;
         }
-        
+
         var produto = await _context.Produtos
             .FirstOrDefaultAsync(produto => produto.Id == request.ProdutoId);
 
@@ -102,7 +103,7 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         await _context.SaveChangesAsync();
 
         return await ObterCarrinhoPorUsuarioAsync(usuarioId); /* retorna carrinho atualizado */
-    }   
+    }
 
     /* usuarioId = de quem é o carrinho, produtoId = qual produto deve ser removido */
     public async Task<CarrinhoResponse?> RemoverItemAsync(int usuarioId, int produtoId)
@@ -110,7 +111,7 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         var carrinho = await _context.Carrinhos
             .Include(carrinho => carrinho.Itens) /* carrega os itens */
             .FirstOrDefaultAsync(carrinho => carrinho.UsuarioId == usuarioId);
-        
+
         if (carrinho is null)
         {
             return null;
@@ -191,7 +192,7 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         return await ObterCarrinhoPorUsuarioAsync(usuarioId);
     }
 
-    public async Task<FinalizarCompraResult> FinalizarCompraAsync(int usuarioId)
+    public async Task<FinalizarCompraResult> FinalizarCompraAsync(int usuarioId, FinalizarCompraRequest request)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -275,6 +276,39 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
             produtos[item.ProdutoId].Estoque -= item.Quantidade;
         }
 
+        var subtotal = itensAgrupados.Sum(item => produtos[item.ProdutoId].Preco * item.Quantidade);
+        var pedido = new Pedido
+        {
+            UsuarioId = usuarioId,
+            Data = DateTime.UtcNow,
+            MetodoPagamento = request.MetodoPagamento.Trim(),
+            Cep = request.Cep.Trim(),
+            FreteLabel = request.FreteLabel.Trim(),
+            FreteValor = request.FreteValor,
+            CupomCodigo = string.IsNullOrWhiteSpace(request.CupomCodigo) ? null : request.CupomCodigo.Trim(),
+            Desconto = request.Desconto,
+            Parcelas = request.Parcelas <= 0 ? 1 : request.Parcelas,
+            Juros = request.Juros,
+            Subtotal = subtotal,
+            Total = request.Total,
+            Status = "Recebido",
+            Itens = itensAgrupados.Select(item =>
+            {
+                var produto = produtos[item.ProdutoId];
+
+                return new ItemPedido
+                {
+                    ProdutoId = produto.Id,
+                    Nome = produto.Nome,
+                    ImagemUrl = produto.ImagemUrl,
+                    PrecoUnitario = produto.Preco,
+                    Quantidade = item.Quantidade,
+                    Subtotal = produto.Preco * item.Quantidade
+                };
+            }).ToList()
+        };
+
+        _context.Pedidos.Add(pedido);
         _context.ItensCarrinho.RemoveRange(carrinho.Itens);
 
         await _context.SaveChangesAsync();
@@ -284,8 +318,40 @@ public class CarrinhoService : ICarrinhoService /* regras de negócio do carrinh
         {
             Sucesso = true,
             Mensagem = "Compra finalizada com sucesso.",
-            Carrinho = await ObterCarrinhoPorUsuarioAsync(usuarioId)
+            Carrinho = await ObterCarrinhoPorUsuarioAsync(usuarioId),
+            Pedido = MapPedidoResponse(pedido)
         };
     }
 
+    private static PedidoResponse MapPedidoResponse(Pedido pedido)
+    {
+        return new PedidoResponse
+        {
+            Id = pedido.Id,
+            UsuarioId = pedido.UsuarioId,
+            UsuarioNome = pedido.Usuario?.Nome ?? string.Empty,
+            UsuarioEmail = pedido.Usuario?.Email ?? string.Empty,
+            Data = pedido.Data,
+            MetodoPagamento = pedido.MetodoPagamento,
+            Cep = pedido.Cep,
+            FreteLabel = pedido.FreteLabel,
+            FreteValor = pedido.FreteValor,
+            CupomCodigo = pedido.CupomCodigo,
+            Desconto = pedido.Desconto,
+            Parcelas = pedido.Parcelas,
+            Juros = pedido.Juros,
+            Subtotal = pedido.Subtotal,
+            Total = pedido.Total,
+            Status = pedido.Status,
+            Itens = pedido.Itens.Select(item => new PedidoItemResponse
+            {
+                ProdutoId = item.ProdutoId,
+                Nome = item.Nome,
+                ImagemUrl = item.ImagemUrl,
+                PrecoUnitario = item.PrecoUnitario,
+                Quantidade = item.Quantidade,
+                Subtotal = item.Subtotal
+            }).ToList()
+        };
+    }
 }

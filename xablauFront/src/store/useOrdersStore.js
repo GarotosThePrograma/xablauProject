@@ -1,38 +1,106 @@
 import { create } from 'zustand';
 
-function getStorageKey() {
-  const usuarioId = localStorage.getItem('usuarioId');
-  return `orders_${usuarioId || 'guest'}`;
+const API_URL = 'http://localhost:5002/api';
+
+function getUsuarioId() {
+  return localStorage.getItem('usuarioId');
 }
 
-function loadStoredOrders() {
-  const saved = localStorage.getItem(getStorageKey());
-
-  if (!saved) {
-    return [];
-  }
-
-  try {
-    return JSON.parse(saved);
-  } catch {
-    return [];
-  }
+function normalizeOrder(order) {
+  return {
+    id: order.id,
+    usuarioId: order.usuarioId,
+    usuarioNome: order.usuarioNome,
+    usuarioEmail: order.usuarioEmail,
+    date: order.data,
+    paymentMethod: order.metodoPagamento,
+    cep: order.cep,
+    shipping: {
+      label: order.freteLabel,
+      value: order.freteValor,
+    },
+    coupon: order.cupomCodigo ? { code: order.cupomCodigo } : null,
+    discount: order.desconto,
+    installments: order.parcelas,
+    interest: order.juros,
+    subtotal: order.subtotal,
+    total: order.total,
+    status: order.status,
+    items: (order.itens ?? []).map((item) => ({
+      id: item.produtoId,
+      name: item.nome,
+      img: item.imagemUrl,
+      price: item.precoUnitario,
+      quantity: item.quantidade,
+      subtotal: item.subtotal,
+    })),
+  };
 }
 
-function saveOrders(orders) {
-  localStorage.setItem(getStorageKey(), JSON.stringify(orders));
+async function readResponse(response) {
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(text || 'Não foi possível carregar os pedidos.');
+  }
+
+  return text ? JSON.parse(text) : null;
+}
+
+async function fetchOrders(path) {
+  const response = await fetch(`${API_URL}${path}`);
+  const data = await readResponse(response);
+  return (data ?? []).map(normalizeOrder);
 }
 
 export const useOrdersStore = create((set) => ({
-  orders: loadStoredOrders(),
+  orders: [],
+  isLoading: false,
+  error: '',
 
-  loadOrders: () => {
-    set({ orders: loadStoredOrders() });
+  loadOrders: async () => {
+    const usuarioId = getUsuarioId();
+
+    if (!usuarioId) {
+      set({ orders: [], isLoading: false, error: '' });
+      return;
+    }
+
+    set({ isLoading: true, error: '' });
+
+    try {
+      const orders = await fetchOrders(`/pedidos/usuario/${usuarioId}`);
+      set({ orders, isLoading: false });
+    } catch (error) {
+      set({ orders: [], isLoading: false, error: error.message });
+    }
   },
 
-  addOrder: (order) => {
-    const nextOrders = [order, ...loadStoredOrders()];
-    saveOrders(nextOrders);
-    set({ orders: nextOrders });
+  loadAdminOrders: async () => {
+    set({ isLoading: true, error: '' });
+
+    try {
+      const orders = await fetchOrders('/pedidos');
+      set({ orders, isLoading: false });
+    } catch (error) {
+      set({ orders: [], isLoading: false, error: error.message });
+    }
+  },
+
+  updateOrderStatus: async (orderId, status) => {
+    const response = await fetch(`${API_URL}/pedidos/${orderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status }),
+    });
+
+    const data = await readResponse(response);
+    const updatedOrder = normalizeOrder(data);
+
+    set((current) => ({
+      orders: current.orders.map((order) => order.id === updatedOrder.id ? updatedOrder : order),
+    }));
+
+    return updatedOrder;
   },
 }));

@@ -14,6 +14,8 @@ function formatCurrency(value) {
 export function Orders() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const orders = useOrdersStore((state) => state.orders);
+  const isLoading = useOrdersStore((state) => state.isLoading);
+  const error = useOrdersStore((state) => state.error);
   const loadOrders = useOrdersStore((state) => state.loadOrders);
 
   useEffect(() => {
@@ -37,7 +39,15 @@ export function Orders() {
           Meus pedidos
         </Text>
 
-        {isLoggedIn && orders.length > 0 ? (
+        {isLoggedIn && isLoading ? (
+          <Text color="gray.600">
+            Carregando seus pedidos...
+          </Text>
+        ) : isLoggedIn && error ? (
+          <Text color="red.500" fontWeight="700">
+            {error}
+          </Text>
+        ) : isLoggedIn && orders.length > 0 ? (
           <Flex direction="column" gap="14px">
             {orders.map((order) => (
               <Flex
@@ -52,7 +62,7 @@ export function Orders() {
                 <Flex justify="space-between" gap="12px" wrap="wrap">
                   <Box>
                     <Text fontWeight="700" color="gray.900">
-                      Pedido #{order.id.slice(0, 8)}
+                      Pedido #{String(order.id).padStart(4, '0')}
                     </Text>
                     <Text fontSize="13px" color="gray.500">
                       {new Date(order.date).toLocaleString('pt-BR')}
@@ -65,6 +75,9 @@ export function Orders() {
 
                 <Text fontSize="14px" color="gray.600">
                   Pagamento: {order.paymentMethod === 'pix' ? 'PIX' : `Cartão de crédito em ${order.installments || 1}x`}
+                </Text>
+                <Text fontSize="14px" color="gray.600">
+                  Status: {order.status}
                 </Text>
                 {order.interest > 0 && (
                   <Text fontSize="14px" color="gray.600">
