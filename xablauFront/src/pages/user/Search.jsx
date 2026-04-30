@@ -10,7 +10,8 @@ function ProductCardSkeleton() {
     <Flex
       direction="column"
       justifyContent="space-between"
-      w="240px"
+      w={{ base: '100%', md: '240px' }}
+      maxW={{ base: '340px', md: '240px' }}
       bg="white"
       border="1px solid"
       borderColor="gray.200"
@@ -67,10 +68,10 @@ export function Search() {
   }, [normalizedSearch, products]);
 
   return (
-    <Box p="40px 24px">
+    <Box p={{ base: '28px 16px', md: '40px 24px' }}>
       {isLoading && <PageLoadingBar />}
 
-      <Text fontSize="28px" fontWeight="800" color="gray.900" mb="8px">
+      <Text fontSize={{ base: '24px', md: '28px' }} fontWeight="800" color="gray.900" mb="8px">
         Pesquisa
       </Text>
 
@@ -88,7 +89,7 @@ export function Search() {
       </Text>
 
       {isLoading ? (
-        <Flex gap="16px" wrap="wrap">
+        <Flex gap="16px" wrap="wrap" justify={{ base: 'center', md: 'flex-start' }}>
           {Array.from({ length: 8 }).map((_, index) => (
             <ProductCardSkeleton key={index} />
           ))}
@@ -96,7 +97,7 @@ export function Search() {
       ) : (
         <>
           {normalizedSearch && filteredProducts.length > 0 && (
-            <Flex gap="16px" wrap="wrap">
+            <Flex gap="16px" wrap="wrap" justify={{ base: 'center', md: 'flex-start' }}>
               {filteredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -110,7 +111,7 @@ export function Search() {
               border="1px solid"
               borderColor="gray.200"
               borderRadius="8px"
-              p="28px"
+              p={{ base: '20px', md: '28px' }}
               maxW="720px"
               gap="6px"
             >

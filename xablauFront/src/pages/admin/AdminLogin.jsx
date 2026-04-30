@@ -24,7 +24,7 @@ export function AdminLogin() {
   };
 
   return (
-    <Flex minH="100vh" align="center" justify="center" bg="aliceblue" p="24px" mt="-124px">
+    <Flex minH="100vh" align="center" justify="center" bg="aliceblue" p={{ base: '16px', md: '24px' }} mt="-124px">
       <Flex
         as="form"
         onSubmit={handleSubmit}
@@ -36,7 +36,7 @@ export function AdminLogin() {
         boxShadow="0 8px 28px rgba(0,0,0,0.09)"
         maxW="420px"
         w="100%"
-        p="28px"
+        p={{ base: '22px', md: '28px' }}
         gap="16px"
       >
         <Box textAlign="center">

@@ -5,6 +5,7 @@ import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { Flex, Text, Button, Box } from "@chakra-ui/react";
 import { useCartStore } from "../../store/useCartStore";
 import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
+import { useToastStore } from '../../store/useToastStore';
 
 function formatCurrency(value) {
   return value.toLocaleString('pt-BR', {
@@ -50,25 +51,27 @@ function calculateInstallmentTotal(total, installments) {
 function CartItemSkeleton() {
   return (
     <Flex
-      w="900px"
-      p="20px"
+      w={{ base: '100%', md: '900px' }}
+      maxW="100%"
+      p={{ base: '14px', md: '20px' }}
       bg="white"
       border="1px solid"
       borderColor="gray.200"
       borderRadius="14px"
-      m="15px"
+      m={{ base: '0 0 14px', md: '15px' }}
       gap="18px"
       align="center"
+      direction={{ base: 'column', sm: 'row' }}
       animation="pulse 1.4s ease-in-out infinite"
     >
-      <Box boxSize="150px" bg="gray.200" borderRadius="8px" />
+      <Box boxSize={{ base: '120px', md: '150px' }} bg="gray.200" borderRadius="8px" />
       <Flex direction="column" flex="1" gap="10px">
         <Box h="18px" bg="gray.200" borderRadius="6px" w="78%" />
         <Box h="14px" bg="gray.200" borderRadius="6px" w="48%" />
         <Box h="14px" bg="gray.200" borderRadius="6px" w="56%" />
       </Flex>
-      <Box h="36px" w="90px" bg="gray.200" borderRadius="8px" />
-      <Box h="46px" w="110px" bg="gray.200" borderRadius="8px" />
+      <Box h="36px" w={{ base: '100%', sm: '90px' }} bg="gray.200" borderRadius="8px" />
+      <Box h="46px" w={{ base: '100%', sm: '110px' }} bg="gray.200" borderRadius="8px" />
     </Flex>
   );
 }
@@ -105,6 +108,7 @@ export function Cart() {
   const clearCart = useCartStore((state) => state.clearCart);
   const finishPurchase = useCartStore((state) => state.finishPurchase);
   const coupons = useCouponsStore((state) => state.coupons);
+  const showToast = useToastStore((state) => state.showToast);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pix');
   const [installments, setInstallments] = useState(1);
@@ -180,6 +184,11 @@ export function Cart() {
         interest: interestAmount,
         total: paymentTotal,
       });
+      showToast({
+        title: 'Compra finalizada',
+        message: 'Seu pedido foi enviado para a área de pedidos.',
+        duration: 3800,
+      });
       navigate('/orders');
     } catch (error) {
       await loadCart();
@@ -191,28 +200,28 @@ export function Cart() {
 
   if (isLoading) {
     return (
-      <Flex w="100%">
+      <Flex w="100%" direction={{ base: 'column', lg: 'row' }} gap={{ base: '18px', lg: '0' }} p={{ base: '16px', md: '0' }}>
         <PageLoadingBar />
-        <Flex direction="column" alignItems="center" maxWidth="75%">
+        <Flex direction="column" alignItems="center" flex={{ base: '1', lg: '0 0 75%' }} maxW="100%" minW="0">
           <Flex
             justify="center"
             alignItems="center"
-            w="100vw"
-            m="20px"
-            fontSize="30px"
+            w="100%"
+            m={{ base: '0 0 10px', md: '20px' }}
+            fontSize={{ base: '24px', md: '30px' }}
             fontWeight="bold"
           >
             Carrinho
           </Flex>
 
-          <Flex direction="column">
+          <Flex direction="column" w="100%" align="center">
             {Array.from({ length: 3 }).map((_, index) => (
               <CartItemSkeleton key={index} />
             ))}
           </Flex>
         </Flex>
 
-        <Flex direction="column" alignItems="center" maxWidth="25%" h="85vh" p="20px">
+        <Flex direction="column" alignItems="center" flex={{ base: '1', lg: '0 0 25%' }} maxW="100%" p={{ base: '0', lg: '20px' }}>
           <OrderSummarySkeleton />
         </Flex>
       </Flex>
@@ -221,8 +230,8 @@ export function Cart() {
 
   if (cart.length === 0) {
     return (
-      <Flex direction="column" align="center" p="40px 24px" gap="24px">
-        <Text fontSize="30px" fontWeight="bold" color="gray.900">
+      <Flex direction="column" align="center" p={{ base: '28px 16px', md: '40px 24px' }} gap="24px">
+        <Text fontSize={{ base: '26px', md: '30px' }} fontWeight="bold" color="gray.900">
           Carrinho
         </Text>
 
@@ -235,7 +244,7 @@ export function Cart() {
           borderRadius="8px"
           maxW="720px"
           w="100%"
-          p="28px"
+          p={{ base: '20px', md: '28px' }}
           gap="14px"
           textAlign="center"
         >
@@ -265,20 +274,20 @@ export function Cart() {
   }
 
   return (
-    <Flex w='100%'>
-      <Flex direction='column' alignItems='center' maxWidth='75%'>
+    <Flex w='100%' direction={{ base: 'column', lg: 'row' }} gap={{ base: '18px', lg: '0' }} p={{ base: '16px', md: '0' }}>
+      <Flex direction='column' alignItems='center' flex={{ base: '1', lg: '0 0 75%' }} maxW="100%" minW="0">
         <Flex
           justify='center'
           alignItems='center'
-          w='100vw'
-          m='20px'
-          fontSize='30px'
+          w='100%'
+          m={{ base: '0 0 10px', md: '20px' }}
+          fontSize={{ base: '24px', md: '30px' }}
           fontWeight='bold'
         >
           Carrinho
         </Flex>
 
-        <Flex direction='column'>
+        <Flex direction='column' w="100%" align="center">
           {cart.map((product) => (
             <CartProductCard
               key={product.id}
@@ -288,24 +297,24 @@ export function Cart() {
         </Flex>
       </Flex>
 
-      <Flex direction='column' alignItems='center' maxWidth='25%' h='85vh' p='20px'>
+      <Flex direction='column' alignItems='center' flex={{ base: '1', lg: '0 0 25%' }} maxW="100%" p={{ base: '0', lg: '20px' }}>
         <Flex
           direction='column'
           bg='white'
           border='1px solid'
           borderColor='gray.200'
           borderRadius='14px'
-          p='24px'
+          p={{ base: '18px', md: '24px' }}
           w='100%'
           minW='0'
           gap='12px'
-          marginTop='124px'
+          marginTop={{ base: '0', lg: '124px' }}
         >
           <Text fontSize='18px' fontWeight='bold' color='gray.900' mb='8px'>
             Resumo do Pedido
           </Text>
 
-          <Flex justify='space-between'>
+          <Flex justify='space-between' gap="12px" minW="0">
             <Text color='gray.500'>Subtotal</Text>
             <Text fontWeight='bold'>{formattedTotal}</Text>
           </Flex>
@@ -325,7 +334,7 @@ export function Cart() {
             </Flex>
           )}
 
-          <Flex justify='space-between'>
+          <Flex justify='space-between' gap="12px" minW="0">
             <Text color='gray.500'>Frete</Text>
             <Text fontWeight='bold' color={shipping ? 'gray.900' : 'gray.500'}>
               {shipping ? formatCurrency(shippingAmount) : 'A calcular'}
@@ -349,9 +358,9 @@ export function Cart() {
 
           <Flex borderTop='1px solid' borderColor='gray.200' mt='4px' />
 
-          <Flex justify='space-between' align='center'>
+          <Flex justify='space-between' align='center' gap="12px" minW="0">
             <Text fontSize='16px' fontWeight='bold' color='gray.900'>Total</Text>
-            <Text fontSize='20px' fontWeight='bold' color='#e27d35'>
+            <Text fontSize={{ base: '18px', md: '20px' }} fontWeight='bold' color='#e27d35' textAlign="right">
               {formattedFinalTotal}
             </Text>
           </Flex>
@@ -435,7 +444,7 @@ export function Cart() {
                 <Text fontSize="14px" fontWeight="700" color="gray.900" mb="6px">
                   Cupom
                 </Text>
-                <Flex gap="8px">
+                <Flex gap="8px" direction={{ base: 'column', sm: 'row' }}>
                   <Box
                     as="input"
                     value={couponCode}
@@ -450,7 +459,7 @@ export function Cart() {
                       outline: 'none',
                     }}
                   />
-                  <Button borderRadius="8px" p="5px 10px" variant="outline" onClick={handleApplyCoupon}>
+                  <Button borderRadius="8px" p="5px 10px" variant="outline" onClick={handleApplyCoupon} w={{ base: '100%', sm: 'auto' }}>
                     Aplicar
                   </Button>
                 </Flex>

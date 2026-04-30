@@ -11,7 +11,8 @@ function ProductCardSkeleton() {
     <Flex
       direction="column"
       justifyContent="space-between"
-      w="240px"
+      w={{ base: '100%', md: '240px' }}
+      maxW={{ base: '340px', md: '240px' }}
       bg="white"
       border="1px solid"
       borderColor="gray.200"
@@ -68,13 +69,13 @@ export function Favorites() {
 
   if (isLoading) {
     return (
-      <Box p="40px 24px">
+      <Box p={{ base: '28px 16px', md: '40px 24px' }}>
         <PageLoadingBar />
-        <Text fontSize="30px" fontWeight="bold" color="gray.900" mb="28px">
+        <Text fontSize={{ base: '26px', md: '30px' }} fontWeight="bold" color="gray.900" mb="28px">
           Favoritos
         </Text>
 
-        <Flex gap="16px" wrap="wrap">
+        <Flex gap="16px" wrap="wrap" justify={{ base: 'center', md: 'flex-start' }}>
           {Array.from({ length: Math.max(favoriteIds.length, 4) }).map((_, index) => (
             <ProductCardSkeleton key={index} />
           ))}
@@ -85,8 +86,8 @@ export function Favorites() {
 
   if (favoriteProducts.length === 0) {
     return (
-      <Flex direction="column" align="center" p="40px 24px" gap="24px">
-        <Text fontSize="30px" fontWeight="bold" color="gray.900">
+      <Flex direction="column" align="center" p={{ base: '28px 16px', md: '40px 24px' }} gap="24px">
+        <Text fontSize={{ base: '26px', md: '30px' }} fontWeight="bold" color="gray.900">
           Favoritos
         </Text>
 
@@ -99,7 +100,7 @@ export function Favorites() {
           borderRadius="8px"
           maxW="720px"
           w="100%"
-          p="28px"
+          p={{ base: '20px', md: '28px' }}
           gap="14px"
           textAlign="center"
         >
@@ -134,12 +135,12 @@ export function Favorites() {
   }
 
   return (
-    <Box p="40px 24px">
-      <Text fontSize="30px" fontWeight="bold" color="gray.900" mb="28px">
+    <Box p={{ base: '28px 16px', md: '40px 24px' }}>
+      <Text fontSize={{ base: '26px', md: '30px' }} fontWeight="bold" color="gray.900" mb="28px">
         Favoritos
       </Text>
 
-      <Flex gap="16px" wrap="wrap">
+      <Flex gap="16px" wrap="wrap" justify={{ base: 'center', md: 'flex-start' }}>
         {favoriteProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

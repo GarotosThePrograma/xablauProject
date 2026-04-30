@@ -18,6 +18,7 @@
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+  min-width: 0;
 }
 
 /* Textos do cabeçalho */
@@ -70,6 +71,7 @@
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 
 .input-group input:focus {
@@ -145,6 +147,8 @@ small {
   display: block;
   font-size: 14px;
   padding: 10px 12px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .auth-message.success {
@@ -155,4 +159,23 @@ small {
 .auth-message.error {
   background-color: #fee2e2;
   color: #991b1b;
+}
+
+@media (max-width: 520px) {
+  .login-wrapper {
+    align-items: flex-start;
+    padding: 28px 16px;
+  }
+
+  .login-card {
+    padding: 22px;
+  }
+
+  .login-header h2 {
+    font-size: 22px;
+  }
+
+  .login-form {
+    gap: 16px;
+  }
 }

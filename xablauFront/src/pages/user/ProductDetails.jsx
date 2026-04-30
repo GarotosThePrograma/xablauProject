@@ -6,6 +6,7 @@ import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { getProductById } from '../../features/products/products';
 import { useCartStore } from '../../store/useCartStore';
 import { useFavoritesStore } from '../../store/useFavoritesStore';
+import { useToastStore } from '../../store/useToastStore';
 
 export function ProductDetails() {
   const { id } = useParams();
@@ -16,6 +17,7 @@ export function ProductDetails() {
   const addToCart = useCartStore((state) => state.addToCart);
   const favoriteIds = useFavoritesStore((state) => state.productIds);
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const showToast = useToastStore((state) => state.showToast);
   const favorite = product ? favoriteIds.includes(product.id) : false;
 
   useEffect(() => {
@@ -38,6 +40,10 @@ export function ProductDetails() {
       setError('');
       await addToCart(product);
       setAdded(true);
+      showToast({
+        title: 'Adicionado ao carrinho',
+        message: product.name,
+      });
       setTimeout(() => setAdded(false), 1000);
     } catch {
       setError(localStorage.getItem('usuarioId') ? 'Quantidade máxima em estoque atingida' : 'Faça login para adicionar ao carrinho');
@@ -67,7 +73,7 @@ export function ProductDetails() {
   }
 
   return (
-    <Box p="40px 24px">
+    <Box p={{ base: '28px 16px', md: '40px 24px' }}>
       <Flex
         bg="white"
         border="1px solid"
@@ -75,7 +81,7 @@ export function ProductDetails() {
         borderRadius="8px"
         maxW="1120px"
         mx="auto"
-        p={{ base: '20px', md: '32px' }}
+        p={{ base: '18px', md: '32px' }}
         gap={{ base: '24px', md: '40px' }}
         direction={{ base: 'column', md: 'row' }}
       >
@@ -84,21 +90,22 @@ export function ProductDetails() {
           borderRadius="8px"
           align="center"
           justify="center"
-          minH={{ base: '300px', md: '480px' }}
+          minH={{ base: '240px', md: '480px' }}
           flex="1"
           p="24px"
         >
           <Image
             src={product.img}
             alt={product.name}
-            maxH={{ base: '280px', md: '430px' }}
+            maxH={{ base: '220px', md: '430px' }}
+            maxW="100%"
             objectFit="contain"
           />
         </Flex>
 
-        <Flex direction="column" flex="1" gap="18px">
-          <Flex justify="space-between" align="flex-start" gap="12px">
-            <Box>
+        <Flex direction="column" flex="1" gap="18px" minW="0">
+          <Flex justify="space-between" align="flex-start" gap="12px" minW="0">
+            <Box minW="0">
               <Text fontSize={{ base: '22px', md: '28px' }} fontWeight="700" color="gray.900" lineHeight="1.2">
                 {product.name}
               </Text>
@@ -122,7 +129,7 @@ export function ProductDetails() {
             </IconButton>
           </Flex>
 
-          <Text color="gray.600" lineHeight="1.6">
+          <Text color="gray.600" lineHeight="1.6" overflowWrap="anywhere" wordBreak="break-word">
             {product.description || product.name}
           </Text>
 
@@ -155,6 +162,7 @@ export function ProductDetails() {
             h="48px"
             fontSize="15px"
             fontWeight="700"
+            whiteSpace="normal"
             disabled={product.stock <= 0}
             onClick={handleAddToCart}
             _hover={{ bg: added ? 'green.400' : 'linear-gradient(to top, #00325a, #1f66a0)' }}

@@ -50,22 +50,26 @@ export function NavBar() {
       top='0'
       left='0'
       zIndex='9999'
+      minW="0"
+      overflow="visible"
     >
       {/* barra principal */}
       <Flex
         align="center"
         justify="space-between"
-        px={6}
+        px={{ base: 3, md: 6 }}
+        gap={{ base: 2, md: 0 }}
+        minW="0"
       >
         {/* logo */}
-        <Box as="h1" color="white" m={0}>
+        <Box as="h1" color="white" m={0} flexShrink="0">
           <Link to={'/'}>
             <Xablau />
           </Link>
         </Box>
 
         {/* search */}
-        <Box flexGrow={1} mx={4} maxW="700px">
+        <Box flexGrow={1} mx={{ base: 1, md: 4 }} maxW="700px" minW="0">
           <Input
             value={searchTerm}
             onChange={handleSearchChange}
@@ -75,7 +79,7 @@ export function NavBar() {
             borderRadius="12px"
             h="30px"
             px={3}
-            minW="150px"
+            minW="0"
             w="100%"
             _focus={{ outline: '1px solid #FE6C04' }}
             _active={{ transform: 'scale(0.95)' }}
@@ -92,6 +96,7 @@ export function NavBar() {
           {isLoggedIn ? (
             <Box
               position="relative"
+              zIndex="10001"
               onMouseEnter={() => setAccountOpen(true)}
               onMouseLeave={() => setAccountOpen(false)}
             >
@@ -112,6 +117,7 @@ export function NavBar() {
                   top="100%"
                   pt="10px"
                   minW="170px"
+                  zIndex="10001"
                 >
                   <Flex
                     direction="column"
@@ -197,20 +203,21 @@ export function NavBar() {
         bg='#004d8e'
         display={{ base: 'block', md: 'none' }}
         zIndex='9999'
-        overflow="hidden"
-        maxH={menuOpen ? '200px' : '0'}
+        overflow={menuOpen ? 'visible' : 'hidden'}
+        maxH={menuOpen ? '260px' : '0'}
         opacity={menuOpen ? 1 : 0}
         transform={menuOpen ? 'translateY(0)' : 'translateY(-8px)'}
         borderTop={menuOpen ? '1px solid #004d8e' : '1px solid transparent'}
         borderBottom={menuOpen ? '2px solid #e27d35' : ''}
-        px={menuOpen ? 6 : 6}
+        px={{ base: 4, md: 6 }}
         py={menuOpen ? 4 : 0}
         transition="max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease, transform 0.3s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease"
       >
-        <Flex justify="space-between" align="center" w='100%'>
+        <Flex justify="space-between" align="center" w='100%' gap="12px">
           {isLoggedIn ? (
             <Box
               position="relative"
+              zIndex="10001"
               onMouseEnter={() => setAccountOpen(true)}
               onMouseLeave={() => setAccountOpen(false)}
             >
@@ -228,6 +235,7 @@ export function NavBar() {
                   top="100%"
                   pt="10px"
                   minW="160px"
+                  zIndex="10001"
                 >
                   <Flex
                     direction="column"

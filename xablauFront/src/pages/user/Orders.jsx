@@ -23,7 +23,7 @@ export function Orders() {
   }, [isLoggedIn, loadOrders]);
 
   return (
-    <Flex justify="center" p="40px 24px">
+    <Flex justify="center" p={{ base: '28px 16px', md: '40px 24px' }}>
       <Flex
         direction="column"
         bg="white"
@@ -32,10 +32,10 @@ export function Orders() {
         borderRadius="8px"
         maxW="720px"
         w="100%"
-        p="28px"
+        p={{ base: '20px', md: '28px' }}
         gap="14px"
       >
-        <Text fontSize="24px" fontWeight="700" color="gray.900">
+        <Text fontSize={{ base: '22px', md: '24px' }} fontWeight="700" color="gray.900">
           Meus pedidos
         </Text>
 
@@ -56,11 +56,12 @@ export function Orders() {
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius="8px"
-                p="16px"
+                p={{ base: '14px', md: '16px' }}
                 gap="10px"
+                minW="0"
               >
                 <Flex justify="space-between" gap="12px" wrap="wrap">
-                  <Box>
+                  <Box minW="0">
                     <Text fontWeight="700" color="gray.900">
                       Pedido #{String(order.id).padStart(4, '0')}
                     </Text>
@@ -68,15 +69,15 @@ export function Orders() {
                       {new Date(order.date).toLocaleString('pt-BR')}
                     </Text>
                   </Box>
-                  <Text fontWeight="800" color="#e27d35">
+                  <Text fontWeight="800" color="#e27d35" flexShrink="0">
                     {formatCurrency(order.total)}
                   </Text>
                 </Flex>
 
-                <Text fontSize="14px" color="gray.600">
+                <Text fontSize="14px" color="gray.600" overflowWrap="anywhere" wordBreak="break-word">
                   Pagamento: {order.paymentMethod === 'pix' ? 'PIX' : `Cartão de crédito em ${order.installments || 1}x`}
                 </Text>
-                <Text fontSize="14px" color="gray.600">
+                <Text fontSize="14px" color="gray.600" overflowWrap="anywhere" wordBreak="break-word">
                   Status: {order.status}
                 </Text>
                 {order.interest > 0 && (
@@ -102,11 +103,11 @@ export function Orders() {
 
                 <Flex direction="column" gap="6px">
                   {order.items.map((item) => (
-                    <Flex key={item.id} justify="space-between" gap="12px">
-                      <Text fontSize="14px" color="gray.700">
+                    <Flex key={item.id} justify="space-between" gap="12px" wrap="wrap">
+                      <Text fontSize="14px" color="gray.700" minW="0" overflowWrap="anywhere" wordBreak="break-word">
                         {item.quantity}x {item.name}
                       </Text>
-                      <Text fontSize="14px" fontWeight="700">
+                      <Text fontSize="14px" fontWeight="700" flexShrink="0">
                         {formatCurrency(item.price * item.quantity)}
                       </Text>
                     </Flex>

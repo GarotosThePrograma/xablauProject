@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Flex, Image, Text } from '@chakra-ui/react';
-import { createProduct, deleteProduct, getProducts, updateProductStock } from '../../features/products/products';
+import { createProduct, deleteProduct, getProducts, updateProduct } from '../../features/products/products';
 import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
+import { useToastStore } from '../../store/useToastStore';
 
 const emptyForm = {
   name: '',
@@ -103,6 +104,9 @@ export function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [couponForm, setCouponForm] = useState(emptyCouponForm);
+  const [nameDrafts, setNameDrafts] = useState({});
+  const [imageDrafts, setImageDrafts] = useState({});
+  const [priceDrafts, setPriceDrafts] = useState({});
   const [stockDrafts, setStockDrafts] = useState({});
   const [sectionDrafts, setSectionDrafts] = useState({});
   const [message, setMessage] = useState('');
@@ -114,6 +118,7 @@ export function AdminProducts() {
   const coupons = useCouponsStore((state) => state.coupons);
   const addCoupon = useCouponsStore((state) => state.addCoupon);
   const removeCoupon = useCouponsStore((state) => state.removeCoupon);
+  const showToast = useToastStore((state) => state.showToast);
   const couponDurationPreview = getCouponDurationPreview(couponForm.durationMinutes);
 
   const loadProducts = useCallback(async () => {
@@ -121,6 +126,9 @@ export function AdminProducts() {
       setIsLoading(true);
       const data = await getProducts();
       setProducts(data);
+      setNameDrafts(Object.fromEntries(data.map((product) => [product.id, product.name])));
+      setImageDrafts(Object.fromEntries(data.map((product) => [product.id, product.img])));
+      setPriceDrafts(Object.fromEntries(data.map((product) => [product.id, product.price])));
       setStockDrafts(Object.fromEntries(data.map((product) => [product.id, product.stock])));
       setSectionDrafts(Object.fromEntries(data.map((product) => [product.id, getProductSection(product)])));
     } catch {
@@ -153,16 +161,44 @@ export function AdminProducts() {
     }
   };
 
-  const handleUpdateStock = async (productId) => {
+  const handleUpdateProduct = async (productId) => {
     setMessage('');
 
+    const name = (nameDrafts[productId] ?? '').trim();
+    const img = (imageDrafts[productId] ?? '').trim();
+    const price = Number(priceDrafts[productId]);
+
+    if (!name) {
+      setMessage('Informe o nome do produto.');
+      return;
+    }
+
+    if (!img) {
+      setMessage('Informe a URL da imagem.');
+      return;
+    }
+
+    if (Number.isNaN(price) || price < 0) {
+      setMessage('Informe um preço válido.');
+      return;
+    }
+
     try {
-      await updateProductStock(productId, stockDrafts[productId]);
+      await updateProduct(productId, {
+        name,
+        img,
+        price,
+        stock: stockDrafts[productId],
+      });
       setProductSection(productId, sectionDrafts[productId]);
       setMessage('Produto atualizado.');
+      showToast({
+        title: 'Produto atualizado',
+        message: name,
+      });
       await loadProducts();
-    } catch {
-      setMessage('Não foi possível atualizar o produto.');
+    } catch (error) {
+      setMessage(error.message || 'Não foi possível atualizar o produto.');
     }
   };
 
@@ -200,10 +236,10 @@ export function AdminProducts() {
   };
 
   return (
-    <Box p="32px 24px">
+    <Box p={{ base: '24px 16px', md: '32px 24px' }}>
       <Flex direction="column" gap="24px" maxW="1180px" mx="auto">
         <Box>
-          <Text fontSize="28px" fontWeight="800" color="gray.900">
+          <Text fontSize={{ base: '24px', md: '28px' }} fontWeight="800" color="gray.900">
             Produtos
           </Text>
           <Text color="gray.600">
@@ -219,7 +255,7 @@ export function AdminProducts() {
           border="1px solid"
           borderColor="gray.200"
           borderRadius="8px"
-          p="20px"
+          p={{ base: '16px', md: '20px' }}
           gap="12px"
         >
           <Text fontSize="18px" fontWeight="700" color="gray.900">
@@ -261,7 +297,7 @@ export function AdminProducts() {
 
           <Button
             type="submit"
-            alignSelf="flex-start"
+            alignSelf={{ base: 'stretch', md: 'flex-start' }}
             bg="linear-gradient(to top, #004d8e, #3695e3)"
             color="white"
             borderRadius="8px"
@@ -284,7 +320,7 @@ export function AdminProducts() {
           border="1px solid"
           borderColor="gray.200"
           borderRadius="8px"
-          p="20px"
+          p={{ base: '16px', md: '20px' }}
           gap="12px"
         >
           <Box>
@@ -319,6 +355,7 @@ export function AdminProducts() {
 
             <Button
               type="submit"
+              w={{ base: '100%', md: 'auto' }}
               bg="linear-gradient(to top, #004d8e, #3695e3)"
               color="white"
               borderRadius="8px"
@@ -333,7 +370,7 @@ export function AdminProducts() {
             {coupons.length === 0 ? (
               <Text color="gray.600" fontSize="14px">Nenhum cupom cadastrado.</Text>
             ) : coupons.map((coupon) => (
-              <Flex key={coupon.id} justify="space-between" align="center" border="1px solid" borderColor="gray.200" borderRadius="8px" p="10px" gap="12px">
+              <Flex key={coupon.id} justify="space-between" align={{ base: 'stretch', md: 'center' }} direction={{ base: 'column', md: 'row' }} border="1px solid" borderColor="gray.200" borderRadius="8px" p="10px" gap="12px">
                 <Box minW="0">
                   <Text
                     fontWeight="800"
@@ -374,7 +411,7 @@ export function AdminProducts() {
             products.map((product) => (
               <Flex
                 key={product.id}
-                align="center"
+                align={{ base: 'stretch', md: 'center' }}
                 gap="14px"
                 bg="white"
                 border="1px solid"
@@ -383,15 +420,47 @@ export function AdminProducts() {
                 p="14px"
                 wrap="wrap"
               >
-                <Image src={product.img} alt={product.name} boxSize="72px" objectFit="contain" bg="gray.50" borderRadius="8px" />
+                <Image
+                  src={imageDrafts[product.id] || product.img}
+                  alt={nameDrafts[product.id] || product.name}
+                  boxSize="72px"
+                  objectFit="contain"
+                  bg="gray.50"
+                  borderRadius="8px"
+                  alignSelf={{ base: 'center', md: 'auto' }}
+                />
 
-                <Box flex="1 1 280px">
-                  <Text fontWeight="700" color="gray.900">{product.name}</Text>
-                  <Text color="#e27d35" fontWeight="800">{formatCurrency(product.price)}</Text>
+                <Box flex="1 1 220px" minW="0">
+                  <Text fontWeight="700" color="gray.900" overflowWrap="anywhere" wordBreak="break-word">{nameDrafts[product.id] || product.name}</Text>
+                  <Text color="#e27d35" fontWeight="800">{formatCurrency(Number(priceDrafts[product.id] ?? product.price))}</Text>
                 </Box>
 
-                <Flex align="end" gap="8px">
-                  <Box w="190px">
+                <Flex align="end" gap="8px" wrap="wrap" w={{ base: '100%', md: 'auto' }}>
+                  <Box w={{ base: '100%', md: '220px' }}>
+                    <Text fontSize="12px" fontWeight="700" mb="5px">Nome</Text>
+                    <AdminInput
+                      value={nameDrafts[product.id] ?? ''}
+                      onChange={(event) => setNameDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                    />
+                  </Box>
+                  <Box w={{ base: '100%', md: '260px' }}>
+                    <Text fontSize="12px" fontWeight="700" mb="5px">URL da imagem</Text>
+                    <AdminInput
+                      value={imageDrafts[product.id] ?? ''}
+                      onChange={(event) => setImageDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                    />
+                  </Box>
+                  <Box w={{ base: '100%', md: '120px' }}>
+                    <Text fontSize="12px" fontWeight="700" mb="5px">Preço</Text>
+                    <AdminInput
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={priceDrafts[product.id] ?? 0}
+                      onChange={(event) => setPriceDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                    />
+                  </Box>
+                  <Box w={{ base: '100%', md: '190px' }}>
                     <Text fontSize="12px" fontWeight="700" mb="5px">Categoria</Text>
                     <AdminSelect
                       value={sectionDrafts[product.id] || getProductSection(product)}
@@ -404,7 +473,7 @@ export function AdminProducts() {
                       ))}
                     </AdminSelect>
                   </Box>
-                  <Box w="110px">
+                  <Box w={{ base: '100%', md: '110px' }}>
                     <Text fontSize="12px" fontWeight="700" mb="5px">Estoque</Text>
                     <AdminInput
                       type="number"
@@ -413,10 +482,10 @@ export function AdminProducts() {
                       onChange={(event) => setStockDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
                     />
                   </Box>
-                  <Button borderRadius="8px" variant="outline" p="5px" onClick={() => handleUpdateStock(product.id)}>
+                  <Button borderRadius="8px" variant="outline" p="5px" w={{ base: '100%', md: 'auto' }} onClick={() => handleUpdateProduct(product.id)}>
                     Atualizar
                   </Button>
-                  <Button borderRadius="8px" p="5px" colorPalette="red" onClick={() => handleDeleteProduct(product.id)}>
+                  <Button borderRadius="8px" p="5px" colorPalette="red" w={{ base: '100%', md: 'auto' }} onClick={() => handleDeleteProduct(product.id)}>
                     Deletar
                   </Button>
                 </Flex>

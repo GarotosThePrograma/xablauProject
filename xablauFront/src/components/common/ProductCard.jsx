@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
 import { useCartStore } from '../../store/useCartStore';
 import { useFavoritesStore } from '../../store/useFavoritesStore';
+import { useToastStore } from '../../store/useToastStore';
 
 export function ProductCard({ product }) {
   const [added, setAdded] = useState(false);
@@ -13,6 +14,7 @@ export function ProductCard({ product }) {
   const addToCart = useCartStore((state) => state.addToCart);
   const favoriteIds = useFavoritesStore((state) => state.productIds);
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const showToast = useToastStore((state) => state.showToast);
   const favorite = favoriteIds.includes(product.id);
 
   const handleAdd = async () => {
@@ -20,6 +22,10 @@ export function ProductCard({ product }) {
       setError('');
       await addToCart(product);
       setAdded(true);
+      showToast({
+        title: 'Adicionado ao carrinho',
+        message: product.name,
+      });
       setTimeout(() => setAdded(false), 1000);
     } catch {
       setError(localStorage.getItem('usuarioId') ? 'Quantidade máxima em estoque atingida' : 'Faça login para adicionar ao carrinho');
@@ -31,7 +37,9 @@ export function ProductCard({ product }) {
     <Flex
       direction="column"
       justifyContent="space-between"
-      w="240px"
+      w={{ base: '100%', md: '210px' }}
+      maxW={{ base: '300px', md: '210px' }}
+      minW="0"
       bg="white"
       border="1px solid"
       borderColor="gray.200"
@@ -66,16 +74,16 @@ export function ProductCard({ product }) {
         as={Link}
         to={`/product/${product.id}`}
         bg="gray.50"
-        h="180px"
+        h="150px"
         align="center"
         justify="center"
-        p="16px"
+        p="14px"
       >
         {!imageLoaded && (
           <Box
             position="absolute"
-            w="140px"
-            h="140px"
+            w="118px"
+            h="118px"
             bg="gray.200"
             borderRadius="8px"
             animation="pulse 1.4s ease-in-out infinite"
@@ -84,7 +92,7 @@ export function ProductCard({ product }) {
         <Image
           src={product.img}
           alt={product.name}
-          boxSize="140px"
+          boxSize="118px"
           objectFit="cover"
           borderRadius="8px"
           opacity={imageLoaded ? 1 : 0}
@@ -94,7 +102,7 @@ export function ProductCard({ product }) {
         />
       </Flex>
 
-      <Box p="14px 16px 18px">
+      <Box p="12px 14px 14px">
         <Text
           as={Link}
           to={`/product/${product.id}`}
@@ -102,19 +110,28 @@ export function ProductCard({ product }) {
           fontSize="13px"
           color="gray.500"
           fontWeight="500"
+          minH="38px"
+          overflowWrap="anywhere"
+          wordBreak="break-word"
+          style={{
+            display: '-webkit-box',
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: 2,
+            overflow: 'hidden',
+          }}
           _hover={{ color: '#e27d35' }}
         >
           {product.name}
         </Text>
-        <Text fontSize="20px" fontWeight="700" color="gray.900" mb="14px">
+        <Text fontSize="18px" fontWeight="700" color="gray.900" mb="10px">
           {product.price.toLocaleString('pt-BR', {
             style: 'currency',
             currency: 'BRL',
           })}
         </Text>
-        <Text fontSize="12px" fontWeight="700" color="gray.900" mb="14px">
+        <Text fontSize="12px" fontWeight="700" color="gray.900" mb="10px">
           Em estoque:{' '}
-          <Span color={product.stock > 0 ? 'green' : 'red'} fontSize="15px">
+          <Span color={product.stock > 0 ? 'green' : 'red'} fontSize="14px">
             {product.stock > 0 ? product.stock : 'Esgotado'}
           </Span>
         </Text>
@@ -128,10 +145,12 @@ export function ProductCard({ product }) {
         {product.stock > 0 && (
           <Button
             w="full"
+            minH="36px"
+            whiteSpace="normal"
             bg={added ? 'green.500' : 'linear-gradient(to top, #004d8e, #3695e3)'}
             color="white"
             borderRadius="8px"
-            fontSize="13px"
+            fontSize="12px"
             fontWeight="600"
             _hover={{ bg: added ? 'green.400' : 'linear-gradient(to top, #00325a, #1f66a0)' }}
             _active={{ transform: 'scale(0.97)' }}

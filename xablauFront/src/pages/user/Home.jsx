@@ -14,7 +14,8 @@ function ProductCardSkeleton() {
     <Flex
       direction="column"
       justifyContent="space-between"
-      w="240px"
+      w={{ base: '100%', md: '210px' }}
+      maxW={{ base: '300px', md: '210px' }}
       bg="white"
       border="1px solid"
       borderColor="gray.200"
@@ -22,16 +23,16 @@ function ProductCardSkeleton() {
       overflow="hidden"
       animation="pulse 1.4s ease-in-out infinite"
     >
-      <Flex bg="gray.50" h="180px" align="center" justify="center" p="16px">
-        <Box w="140px" h="140px" bg="gray.200" borderRadius="8px" />
+      <Flex bg="gray.50" h="150px" align="center" justify="center" p="14px">
+        <Box w="118px" h="118px" bg="gray.200" borderRadius="8px" />
       </Flex>
 
-      <Box p="14px 16px 18px">
+        <Box p="12px 14px 14px">
         <Box h="14px" bg="gray.200" borderRadius="6px" mb="8px" />
         <Box h="14px" bg="gray.200" borderRadius="6px" w="80%" mb="16px" />
-        <Box h="24px" bg="gray.200" borderRadius="6px" w="60%" mb="14px" />
-        <Box h="14px" bg="gray.200" borderRadius="6px" w="48%" mb="14px" />
-        <Box h="36px" bg="gray.200" borderRadius="8px" />
+        <Box h="22px" bg="gray.200" borderRadius="6px" w="60%" mb="12px" />
+        <Box h="14px" bg="gray.200" borderRadius="6px" w="48%" mb="12px" />
+        <Box h="34px" bg="gray.200" borderRadius="8px" />
       </Box>
     </Flex>
   );
@@ -295,14 +296,14 @@ export function Home() {
   }));
 
   return (
-    <Box p='40px 24px'>
+    <Box p={{ base: '28px 16px', md: '40px 24px' }}>
       {isLoading ? (
         <>
           <PageLoadingBar />
-          <Text fontSize='22px' fontWeight='700' color='gray.900' mb='28px'>
+          <Text fontSize={{ base: '20px', md: '22px' }} fontWeight='700' color='gray.900' mb='28px'>
             Carregando produtos
           </Text>
-          <Flex gap='16px' wrap='wrap'>
+          <Flex gap='14px' wrap='wrap' justify="center">
             {Array.from({ length: 8 }).map((_, index) => (
               <ProductCardSkeleton key={index} />
             ))}
@@ -315,10 +316,10 @@ export function Home() {
             .filter((section) => section.products.length > 0)
             .map((section) => (
               <Box key={`${section.id}-${Object.keys(sectionsByProductId).length}`} mb="36px">
-                <Text fontSize='22px' fontWeight='700' color='gray.900' mb='20px'>
+                <Text fontSize={{ base: '20px', md: '22px' }} fontWeight='700' color='gray.900' mb='20px'>
                   {section.label}
                 </Text>
-                <Flex gap='16px' wrap='wrap'>
+                <Flex gap='14px' wrap='wrap' justifyContent={{ base: "center", md: "flex-start" }} >
                   {section.products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}

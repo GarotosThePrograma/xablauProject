@@ -66,9 +66,9 @@ public class ProdutosController : ControllerBase /* lista os produtos para o fro
             return BadRequest("Nome obrigatório");
         }
 
-        if (request.Preco < 0 || request.Estoque < 0)
+        if (request.Estoque < 0)
         {
-            return BadRequest("Preço e estoque não podem ser negativos");
+            return BadRequest("Estoque não pode ser negativo");
         }
 
         var produto = new Produto
@@ -123,6 +123,50 @@ public class ProdutosController : ControllerBase /* lista os produtos para o fro
         });
     }
 
+    [HttpPatch("{id:int}")]
+    public async Task<IActionResult> Atualizar(int id, [FromBody] AtualizarProdutoRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Nome))
+        {
+            return BadRequest("Nome obrigatório");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.ImagemUrl))
+        {
+            return BadRequest("URL da imagem obrigatória");
+        }
+
+        if (request.Preco < 0 || request.Estoque < 0)
+        {
+            return BadRequest("Preço e estoque não podem ser negativos");
+        }
+
+        var produto = await _context.Produtos.FirstOrDefaultAsync(produto => produto.Id == id);
+
+        if (produto is null)
+        {
+            return NotFound("Produto não encontrado");
+        }
+
+        produto.Nome = request.Nome.Trim();
+        produto.Descricao = string.IsNullOrWhiteSpace(request.Descricao) ? produto.Nome : request.Descricao.Trim();
+        produto.Preco = request.Preco;
+        produto.ImagemUrl = request.ImagemUrl.Trim();
+        produto.Estoque = request.Estoque;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            id = produto.Id,
+            name = produto.Nome,
+            description = produto.Descricao,
+            price = produto.Preco,
+            stock = produto.Estoque,
+            img = produto.ImagemUrl,
+        });
+    }
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Deletar(int id)
     {
@@ -152,4 +196,13 @@ public class ProdutoRequest
 public class AtualizarEstoqueRequest
 {
     public int Estoque { get; set; }
+}
+
+public class AtualizarProdutoRequest
+{
+    public string Nome { get; set; } = string.Empty;
+    public string Descricao { get; set; } = string.Empty;
+    public decimal Preco { get; set; }
+    public int Estoque { get; set; }
+    public string ImagemUrl { get; set; } = string.Empty;
 }

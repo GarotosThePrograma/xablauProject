@@ -9,26 +9,36 @@ export function CartProductCard({ product }) {
 
     return (
         <Flex
-            w='900px'
-            p='20px'
+            w={{ base: '100%', md: '900px' }}
+            maxW="100%"
+            p={{ base: '14px', md: '20px' }}
             bg='white'
             border='1px solid'
             borderColor='gray.200'
             borderRadius='14px'
             overflow='hidden'
             transition='all 0.25s'
-            m='15px'
+            m={{ base: '0 0 14px', md: '15px' }}
 
             _hover={{ boxShadow: '0 8px 28px rgba(0,0,0,0.09)', transform: 'translateY(-4px)', border: '1px solid #e27d35' }}  
             >
-            <Flex align='center' justify='space-between' w='100%'>
+            <Flex
+                align={{ base: 'flex-start', md: 'center' }}
+                justify='space-between'
+                w='100%'
+                gap={{ base: '12px', md: '18px' }}
+                direction={{ base: 'column', sm: 'row' }}
+                minW="0"
+            >
                 <Image
                         src={ product.img } 
-                        boxSize='150px'
+                        boxSize={{ base: '120px', md: '150px' }}
                         objectFit='cover'
+                        borderRadius="8px"
+                        alignSelf={{ base: 'center', sm: 'flex-start' }}
                     />
-                <Flex direction='column'>
-                    <Heading fontSize='16px'>{ product.name }</Heading>
+                <Flex direction='column' flex="1" minW="0">
+                    <Heading fontSize='16px' overflowWrap="anywhere" wordBreak="break-word">{ product.name }</Heading>
                     <Text fontSize='13px'>Com desconto no PIX: <Span fontWeight='bold'>R$ { product.price }</Span></Text>
                     <Text fontSize='13px'>Parcelado no cartão: <Span fontWeight='bold' color='green'>3x sem juros R$ { (parseFloat( product.price )) }</Span></Text>
                 </Flex>
@@ -78,7 +88,7 @@ export function CartProductCard({ product }) {
                     </Flex>
                 </Flex>
 
-                <Flex direction='column' align='center' justify='center'>
+                <Flex direction='column' align={{ base: 'flex-start', md: 'center' }} justify='center'>
                     <Text fontSize='14px'>Preço no PIX:</Text>
                     <Text fontSize='18px' fontWeight='bold' color='#e27d35'>R$ { product.price }</Text>
                 </Flex>

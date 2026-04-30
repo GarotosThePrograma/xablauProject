@@ -29,12 +29,15 @@ export function AdminLayout() {
         <Box mt="-124px" minH="100vh">
             <Flex
                 as="header"
-                align="center"
+                align={{ base: 'flex-start', md: 'center' }}
                 justify="space-between"
+                direction={{ base: 'column', md: 'row' }}
+                gap={{ base: '10px', md: '0' }}
                 bg="#004d8e"
                 color="white"
-                h="72px"
-                px="24px"
+                minH={{ base: '108px', md: '72px' }}
+                px={{ base: '16px', md: '24px' }}
+                py={{ base: '14px', md: '0' }}
                 borderBottom="2px solid #e27d35"
                 position="fixed"
                 top="0"
@@ -46,7 +49,7 @@ export function AdminLayout() {
                     Admin Xablau
                 </Text>
 
-                <Flex gap="18px" fontSize="14px" fontWeight="600">
+                <Flex gap={{ base: '12px', md: '18px' }} fontSize="14px" fontWeight="600" wrap="wrap">
                     <Box as={Link} to="/" _hover={{ color: '#e27d35' }}>
                         Loja
                     </Box>
@@ -74,7 +77,7 @@ export function AdminLayout() {
                 </Flex>
             </Flex>
 
-            <Box as="main" pt="72px">
+            <Box as="main" pt={{ base: '108px', md: '72px' }}>
                 <Outlet />
             </Box>
         </Box>
