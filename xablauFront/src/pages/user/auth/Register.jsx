@@ -1,10 +1,14 @@
-import './RegisterLogin.css';
 import { registerSchema } from './schemas/authSchema';
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Box, Button, Flex, Text } from '@chakra-ui/react';
+
+function getFirstErrorMessage(formErrors) {
+  return Object.values(formErrors).find((error) => error?.message)?.message;
+}
 
 
 export function Register() {
@@ -21,6 +25,12 @@ export function Register() {
   } = useForm({
     resolver: zodResolver(registerSchema), // o RHF agora sabe que deve usar o Zod
   });
+
+  const lidarComErros = (formErrors) => {
+    const message = getFirstErrorMessage(formErrors) || 'Revise os campos destacados.';
+
+    setFeedback({ type: 'error', message });
+  };
 
   const enviarDados = async (dadosValidados) => {
     setIsSubmitting(true);
@@ -47,9 +57,11 @@ export function Register() {
         return;
       }
 
-      setFeedback({ type: 'error', message: data.mensagem || 'Não foi possível realizar o cadastro' });
+      const message = data.mensagem || 'Não foi possível realizar o cadastro';
+      setFeedback({ type: 'error', message });
     } catch {
-      setFeedback({ type: 'error', message: 'Não foi possível conectar ao servidor' });
+      const message = 'Não foi possível conectar ao servidor';
+      setFeedback({ type: 'error', message });
     } finally {
       setIsSubmitting(false);
     }
@@ -57,75 +69,154 @@ export function Register() {
 
 
   return (
-    <div className="login-wrapper">
-      <div className="login-card">
-        
-        <div className="login-header">
-          <h2>Crie uma conta</h2>
-          <p>Digite seu nome, e-mail e senha abaixo para efetuar o cadastro</p>
-        </div>
+    <Flex
+      minH="calc(100vh - 124px)"
+      align={{ base: 'flex-start', md: 'center' }}
+      justify="center"
+      bg="#f8fafc"
+      p={{ base: '28px 16px', md: '24px' }}
+    >
+      <Flex
+        as="form"
+        onSubmit={handleSubmit(enviarDados, lidarComErros)}
+        noValidate
+        direction="column"
+        bg="white"
+        border="1px solid"
+        borderColor="gray.200"
+        borderRadius="12px"
+        boxShadow="0 4px 12px rgba(15, 23, 42, 0.10)"
+        maxW="400px"
+        w="100%"
+        minW="0"
+        p={{ base: '22px', md: '32px' }}
+        gap={{ base: '16px', md: '20px' }}
+      >
+        <Box textAlign="center" mb="4px">
+          <Text fontSize={{ base: '22px', md: '24px' }} fontWeight="800" color="gray.900">
+            Crie uma conta
+          </Text>
+          <Text color="gray.500" fontSize="14px" mt="6px">
+            Digite seu nome, e-mail e senha abaixo para efetuar o cadastro
+          </Text>
+        </Box>
 
-        <form onSubmit={handleSubmit(enviarDados)} className="login-form">
-          <div className="input-group">
-
-            <label htmlFor="name">Nome:</label>
-            <input 
-              id='name'
-              type='text'
-              placeholder='Seu nome'
-              autoComplete='Off'
-
-              /* injeta o nome no RHF */
-              { ...register("name") }
-            />
-            {errors.name && <span className='incorrect' >{errors.name.message}</span>}
-
-            <label htmlFor="email">E-mail:</label>
-            <input 
-              id="email" 
-              type="email" 
-              placeholder="seuemail@aqui.com"
-              autoComplete='off'
-
-              /* o resgister faz o input ser controlado pelo RHF */
-              { ...register("email") }
-            />
-            {errors.email && <span className='incorrect' >{errors.email.message}</span>}
-          </div>
-
-          <div className="input-group">
-            <div className="password-header">
-              <label htmlFor="password">Senha:</label>
-              
-            </div>
-            <input 
-              id="password" 
-              type="password" 
-              placeholder="••••••••"
-
-              /* o resgister faz o input ser controlado pelo RHF */
-              { ...register("password") }
-            />
-            {errors.password && <span className='incorrect'>{errors.password.message}</span>}
-
-          </div>
-
-          {feedback.message && (
-            <span className={`auth-message ${feedback.type}`}>
-              {feedback.message}
-            </span>
+        <Flex direction="column" gap="8px">
+          <Text as="label" htmlFor="name" fontSize="14px" fontWeight="700" color="gray.900">
+            Nome
+          </Text>
+          <Box
+            as="input"
+            id="name"
+            type="text"
+            placeholder="Seu nome"
+            autoComplete="off"
+            border="1px solid"
+            borderColor={errors.name ? 'red.300' : 'gray.300'}
+            borderRadius="8px"
+            p="10px 12px"
+            fontSize="14px"
+            outline="none"
+            minW="0"
+            _focus={{ borderColor: '#004d8e', boxShadow: '0 0 0 2px rgba(0, 77, 142, 0.12)' }}
+            {...register("name")}
+          />
+          {errors.name && (
+            <Text color="red.500" fontSize="13px" fontWeight="700">
+              {errors.name.message}
+            </Text>
           )}
+        </Flex>
 
-          <button type="submit" className="btn-primary" disabled={isSubmitting || feedback.type === 'success'}>
-            {isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
-          </button>
+        <Flex direction="column" gap="8px">
+          <Text as="label" htmlFor="email" fontSize="14px" fontWeight="700" color="gray.900">
+            E-mail
+          </Text>
+          <Box
+            as="input"
+            id="email"
+            type="email"
+            placeholder="seuemail@aqui.com"
+            autoComplete="off"
+            border="1px solid"
+            borderColor={errors.email ? 'red.300' : 'gray.300'}
+            borderRadius="8px"
+            p="10px 12px"
+            fontSize="14px"
+            outline="none"
+            minW="0"
+            _focus={{ borderColor: '#004d8e', boxShadow: '0 0 0 2px rgba(0, 77, 142, 0.12)' }}
+            {...register("email")}
+          />
+          {errors.email && (
+            <Text color="red.500" fontSize="13px" fontWeight="700">
+              {errors.email.message}
+            </Text>
+          )}
+        </Flex>
 
-          <p>
-            Já tem uma conta? <Link to="/login" className='not-registered-yet'>Entre</Link>
-          </p>
-        </form>
+        <Flex direction="column" gap="8px">
+          <Text as="label" htmlFor="password" fontSize="14px" fontWeight="700" color="gray.900">
+            Senha
+          </Text>
+          <Box
+            as="input"
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            border="1px solid"
+            borderColor={errors.password ? 'red.300' : 'gray.300'}
+            borderRadius="8px"
+            p="10px 12px"
+            fontSize="14px"
+            outline="none"
+            minW="0"
+            _focus={{ borderColor: '#004d8e', boxShadow: '0 0 0 2px rgba(0, 77, 142, 0.12)' }}
+            {...register("password")}
+          />
+          {errors.password && (
+            <Text color="red.500" fontSize="13px" fontWeight="700">
+              {errors.password.message}
+            </Text>
+          )}
+        </Flex>
 
-      </div>
-    </div>
+        {feedback.message && (
+          <Text
+            borderRadius="8px"
+            fontSize="14px"
+            fontWeight="700"
+            p="10px 12px"
+            bg={feedback.type === 'success' ? 'green.100' : 'red.100'}
+            color={feedback.type === 'success' ? 'green.700' : 'red.700'}
+            overflowWrap="anywhere"
+            wordBreak="break-word"
+          >
+            {feedback.message}
+          </Text>
+        )}
+
+        <Button
+          type="submit"
+          disabled={isSubmitting || feedback.type === 'success'}
+          bg="linear-gradient(to top, #004d8e, #3695e3)"
+          color="white"
+          borderRadius="8px"
+          fontWeight="700"
+          minH="42px"
+          _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
+          _disabled={{ opacity: 0.75, cursor: 'not-allowed' }}
+        >
+          {isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
+        </Button>
+
+        <Text fontSize="14px" color="gray.600" textAlign="center">
+          Já tem uma conta?{' '}
+          <Box as={Link} to="/login" color="#3695e3" fontWeight="700" _hover={{ textDecoration: 'underline' }}>
+            Entre
+          </Box>
+        </Text>
+      </Flex>
+    </Flex>
   );
 }

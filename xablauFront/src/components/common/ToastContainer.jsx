@@ -4,6 +4,9 @@ import { useToastStore } from '../../store/useToastStore';
 
 function ToastItem({ toast }) {
   const removeToast = useToastStore((state) => state.removeToast);
+  const isError = toast.type === 'error';
+  const borderColor = isError ? 'red.200' : 'green.200';
+  const progressColor = isError ? 'red.500' : 'green.500';
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -18,7 +21,7 @@ function ToastItem({ toast }) {
       position="relative"
       bg="white"
       border="1px solid"
-      borderColor="green.200"
+      borderColor={borderColor}
       borderRadius="8px"
       boxShadow="0 14px 34px rgba(15, 23, 42, 0.22)"
       overflow="hidden"
@@ -31,7 +34,7 @@ function ToastItem({ toast }) {
         top="0"
         left="0"
         h="4px"
-        bg="green.500"
+        bg={progressColor}
         w="100%"
         transformOrigin="left"
         style={{

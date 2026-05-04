@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export const useToastStore = create((set) => ({
   toasts: [],
-  showToast: ({ title, message, duration = 3200 }) => {
+  showToast: ({ title, message, type = 'success', duration = 3200 }) => {
     const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
     set((state) => ({
@@ -12,6 +12,7 @@ export const useToastStore = create((set) => ({
           id,
           title,
           message,
+          type,
           duration,
         },
       ],
