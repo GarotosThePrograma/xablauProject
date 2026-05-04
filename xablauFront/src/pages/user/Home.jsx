@@ -1,7 +1,7 @@
 import '../../index.css'
 
 import { Box, Button, Flex, Text } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { ProductCard } from '../../components/common/ProductCard';
@@ -16,6 +16,7 @@ function ProductCardSkeleton() {
       justifyContent="space-between"
       w={{ base: '100%', md: '210px' }}
       maxW={{ base: '300px', md: '210px' }}
+      flexShrink="0"
       bg="white"
       border="1px solid"
       borderColor="gray.200"
@@ -35,6 +36,128 @@ function ProductCardSkeleton() {
         <Box h="34px" bg="gray.200" borderRadius="8px" />
       </Box>
     </Flex>
+  );
+}
+
+function ProductSectionCarousel({ section }) {
+  const trackRef = useRef(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  useEffect(() => {
+    const updateOverflow = () => {
+      if (!trackRef.current) {
+        return;
+      }
+
+      setHasOverflow(trackRef.current.scrollWidth > trackRef.current.clientWidth + 2);
+    };
+
+    updateOverflow();
+    const timeoutId = setTimeout(updateOverflow, 100);
+    window.addEventListener('resize', updateOverflow);
+
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateOverflow);
+    };
+  }, [section.products.length]);
+
+  const scrollProducts = (direction) => {
+    if (!trackRef.current) {
+      return;
+    }
+
+    const firstCard = trackRef.current.firstElementChild;
+    const cardStep = firstCard ? firstCard.getBoundingClientRect().width + 14 : 224;
+    const visibleWidth = trackRef.current.clientWidth;
+    const scrollAmount = Math.max(cardStep, Math.floor(visibleWidth / cardStep) * cardStep);
+    const maxScroll = trackRef.current.scrollWidth - visibleWidth;
+    const currentScroll = trackRef.current.scrollLeft;
+
+    if (direction === 'next') {
+      trackRef.current.scrollTo({
+        left: currentScroll + scrollAmount >= maxScroll - 4 ? 0 : currentScroll + scrollAmount,
+        behavior: 'smooth',
+      });
+
+      return;
+    }
+
+    trackRef.current.scrollTo({
+      left: currentScroll <= 4 ? maxScroll : currentScroll - scrollAmount,
+      behavior: 'smooth',
+    });
+  };
+
+  return (
+    <Box mb="36px">
+      <Flex align="center" justify="space-between" gap="12px" mb="20px">
+        <Text fontSize={{ base: '20px', md: '22px' }} fontWeight='700' color='gray.900'>
+          {section.label}
+        </Text>
+
+        {hasOverflow && (
+          <Flex gap="8px" flexShrink="0">
+            <Button
+              aria-label={`Produtos anteriores de ${section.label}`}
+              minW="36px"
+              h="36px"
+              borderRadius="full"
+              bg="white"
+              color="#004d8e"
+              border="1px solid"
+              borderColor="gray.200"
+              fontSize="20px"
+              fontWeight="900"
+              onClick={() => scrollProducts('previous')}
+              _hover={{ bg: '#e27d35', color: 'white' }}
+            >
+              {'<'}
+            </Button>
+
+            <Button
+              aria-label={`Próximos produtos de ${section.label}`}
+              minW="36px"
+              h="36px"
+              borderRadius="full"
+              bg="white"
+              color="#004d8e"
+              border="1px solid"
+              borderColor="gray.200"
+              fontSize="20px"
+              fontWeight="900"
+              onClick={() => scrollProducts('next')}
+              _hover={{ bg: '#e27d35', color: 'white' }}
+            >
+              {'>'}
+            </Button>
+          </Flex>
+        )}
+      </Flex>
+
+      <Flex
+        ref={trackRef}
+        gap="14px"
+        overflowX="hidden"
+        scrollBehavior="smooth"
+        w="100%"
+        maxW="100%"
+        minW="0"
+        justify={{ base: hasOverflow ? 'flex-start' : 'center', md: 'flex-start' }}
+      >
+        {section.products.map((product) => (
+          <Flex
+            key={product.id}
+            flex={{ base: '0 0 100%', md: '0 0 auto' }}
+            minW="0"
+            maxW={{ base: '100%', md: 'none' }}
+            justify="center"
+          >
+            <ProductCard product={product} />
+          </Flex>
+        ))}
+      </Flex>
+    </Box>
   );
 }
 
@@ -266,7 +389,6 @@ function OffersCarousel({ products }) {
 export function Home() {
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const sectionsByProductId = useProductSectionsStore((state) => state.sectionsByProductId)
   const getProductSection = useProductSectionsStore((state) => state.getProductSection)
 
   useEffect(() => {
@@ -315,16 +437,7 @@ export function Home() {
           {productsBySection
             .filter((section) => section.products.length > 0)
             .map((section) => (
-              <Box key={`${section.id}-${Object.keys(sectionsByProductId).length}`} mb="36px">
-                <Text fontSize={{ base: '20px', md: '22px' }} fontWeight='700' color='gray.900' mb='20px'>
-                  {section.label}
-                </Text>
-                <Flex gap='14px' wrap='wrap' justifyContent={{ base: "center", md: "flex-start" }} >
-                  {section.products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                  ))}
-                </Flex>
-              </Box>
+              <ProductSectionCarousel key={section.id} section={section} />
             ))}
         </>
       )}

@@ -39,7 +39,8 @@ export function ProductCard({ product }) {
       justifyContent="space-between"
       w={{ base: '100%', md: '210px' }}
       maxW={{ base: '300px', md: '210px' }}
-      minW="0"
+      minW={{ base: '0', md: '210px' }}
+      flexShrink="0"
       bg="white"
       border="1px solid"
       borderColor="gray.200"

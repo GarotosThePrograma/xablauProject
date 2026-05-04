@@ -111,7 +111,6 @@ export function AdminProducts() {
   const [sectionDrafts, setSectionDrafts] = useState({});
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const sectionsByProductId = useProductSectionsStore((state) => state.sectionsByProductId);
   const getProductSection = useProductSectionsStore((state) => state.getProductSection);
   const setProductSection = useProductSectionsStore((state) => state.setProductSection);
   const removeProductSection = useProductSectionsStore((state) => state.removeProductSection);
@@ -140,7 +139,7 @@ export function AdminProducts() {
 
   useEffect(() => {
     loadProducts();
-  }, [loadProducts, sectionsByProductId]);
+  }, [loadProducts]);
 
   const handleChange = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -184,19 +183,25 @@ export function AdminProducts() {
     }
 
     try {
-      await updateProduct(productId, {
+      const updatedProduct = await updateProduct(productId, {
         name,
         img,
         price,
         stock: stockDrafts[productId],
       });
       setProductSection(productId, sectionDrafts[productId]);
+      setProducts((current) => current.map((product) => (
+        product.id === productId ? updatedProduct : product
+      )));
+      setNameDrafts((current) => ({ ...current, [productId]: updatedProduct.name }));
+      setImageDrafts((current) => ({ ...current, [productId]: updatedProduct.img }));
+      setPriceDrafts((current) => ({ ...current, [productId]: updatedProduct.price }));
+      setStockDrafts((current) => ({ ...current, [productId]: updatedProduct.stock }));
       setMessage('Produto atualizado.');
       showToast({
         title: 'Produto atualizado',
         message: name,
       });
-      await loadProducts();
     } catch (error) {
       setMessage(error.message || 'Não foi possível atualizar o produto.');
     }
