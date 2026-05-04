@@ -97,8 +97,7 @@ export function Login() {
               id="email" 
               type="email" 
               placeholder="seuemail@aqui.com"
-              autoComplete='off'
-              required 
+              autoComplete='off' 
 
               /* o resgister faz o input ser controlado pelo RHF */
               { ...register("email") }
@@ -114,8 +113,7 @@ export function Login() {
             <input 
               id="password" 
               type="password" 
-              placeholder="••••••••"
-              required 
+              placeholder="••••••••" 
 
               /* o resgister faz o input ser controlado pelo RHF */
               { ...register("password") }

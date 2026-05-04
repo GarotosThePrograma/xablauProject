@@ -1,11 +1,11 @@
 import './RegisterLogin.css';
+import { registerSchema } from './schemas/authSchema';
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { registerSchema } from './schemas/authSchema';
 
 export function Register() {
   const navigate = useNavigate();
@@ -74,7 +74,6 @@ export function Register() {
               type='text'
               placeholder='Seu nome'
               autoComplete='Off'
-              required
 
               /* injeta o nome no RHF */
               { ...register("name") }
@@ -87,7 +86,6 @@ export function Register() {
               type="email" 
               placeholder="seuemail@aqui.com"
               autoComplete='off'
-              required 
 
               /* o resgister faz o input ser controlado pelo RHF */
               { ...register("email") }
@@ -104,7 +102,6 @@ export function Register() {
               id="password" 
               type="password" 
               placeholder="••••••••"
-              required 
 
               /* o resgister faz o input ser controlado pelo RHF */
               { ...register("password") }
