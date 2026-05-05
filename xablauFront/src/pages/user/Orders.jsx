@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { LuChevronRight } from "react-icons/lu"
-import { Box, Button, Flex, Text, Collapsible, Stack } from '@chakra-ui/react';
+import { Box, Button, Flex, Text, Collapsible } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useOrdersStore } from '../../store/useOrdersStore';

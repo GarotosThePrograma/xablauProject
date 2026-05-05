@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { Box, Flex, Text } from '@chakra-ui/react';
+import { Box, Flex, Text, Collapsible } from '@chakra-ui/react';
 import { useOrdersStore } from '../../store/useOrdersStore';
+import { LuChevronRight } from "react-icons/lu"
 
 function formatCurrency(value) {
   return value.toLocaleString('pt-BR', {
@@ -48,71 +49,86 @@ export function AdminOrders() {
         ) : (
           <Flex direction="column" gap="14px">
             {orders.map((order) => (
-              <Flex
-                key={order.id}
-                direction="column"
-                bg="white"
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="8px"
-                p={{ base: '14px', md: '18px' }}
-                gap="14px"
-                minW="0"
-              >
-                <Flex justify="space-between" align="flex-start" gap="16px" wrap="wrap">
-                  <Box minW="0">
-                    <Text fontSize="18px" fontWeight="800" color="gray.900">
-                      Pedido #{String(order.id).padStart(4, '0')}
-                    </Text>
-                    <Text color="gray.600" fontSize="14px">
-                      {new Date(order.date).toLocaleString('pt-BR')}
-                    </Text>
-                    <Text color="gray.700" fontSize="14px" mt="6px" overflowWrap="anywhere" wordBreak="break-word">
-                      {order.usuarioNome || 'Cliente'} - {order.usuarioEmail || 'email não informado'}
-                    </Text>
-                  </Box>
-
-                  <Box textAlign={{ base: 'left', md: 'right' }} minW="0">
-                    <Text fontSize="22px" fontWeight="900" color="#e27d35">
-                      {formatCurrency(order.total)}
-                    </Text>
-                    <Text color="gray.600" fontSize="13px">
-                      {order.paymentMethod === 'pix' ? 'PIX' : `Cartão ${order.installments}x`}
-                    </Text>
-                  </Box>
-                </Flex>
-
-                <Flex gap="12px" wrap="wrap" color="gray.600" fontSize="14px">
-                  <Text>CEP {order.cep}</Text>
-                  <Text overflowWrap="anywhere" wordBreak="break-word">{order.shipping.label}: {formatCurrency(order.shipping.value)}</Text>
-                  {order.coupon && (
-                    <Text
-                      color="green.600"
-                      fontWeight="700"
-                      overflowWrap="anywhere"
-                      wordBreak="break-word"
-                    >
-                      Cupom {order.coupon.code}: -{formatCurrency(order.discount)}
-                    </Text>
-                  )}
-                  {order.interest > 0 && (
-                    <Text>Juros: {formatCurrency(order.interest)}</Text>
-                  )}
-                </Flex>
-
-                <Flex direction="column" gap="8px">
-                  {order.items.map((item) => (
-                    <Flex key={`${order.id}-${item.id}`} justify="space-between" gap="12px" wrap="wrap">
-                      <Text color="gray.700" fontSize="14px" minW="0" overflowWrap="anywhere" wordBreak="break-word">
-                        {item.quantity}x {item.name}
+              <Collapsible.Root>
+                <Flex
+                  key={order.id}
+                  direction="column"
+                  bg="white"
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="8px"
+                  p={{ base: '14px', md: '18px' }}
+                  gap="14px"
+                  minW="0"
+                >
+                  <Flex justify="space-between" align="flex-start" gap="16px" wrap="wrap">
+                    <Box minW="0">
+                      <Text fontSize="18px" fontWeight="800" color="gray.900">
+                        Pedido #{String(order.id).padStart(4, '0')}
                       </Text>
-                      <Text fontWeight="800" color="gray.900" fontSize="14px" flexShrink="0">
-                        {formatCurrency(item.subtotal)}
+                      <Text color="gray.600" fontSize="14px">
+                        {new Date(order.date).toLocaleString('pt-BR')}
                       </Text>
+                      <Collapsible.Content>
+                        <Text color="gray.700" fontSize="14px" mt="6px" overflowWrap="anywhere" wordBreak="break-word">
+                          {order.usuarioNome || 'Cliente'} - {order.usuarioEmail || 'email não informado'}
+                        </Text>
+                      </Collapsible.Content>
+                    </Box>
+                    <Box textAlign={{ base: 'left', md: 'right' }} minW="0">
+                      <Text fontSize="22px" fontWeight="900" color="#e27d35">
+                        {formatCurrency(order.total)}
+                      </Text>
+                      <Text color="gray.600" fontSize="13px">
+                        {order.paymentMethod === 'pix' ? 'PIX' : `Cartão ${order.installments}x`}
+                      </Text>
+                    </Box>
+
+                    <Collapsible.Trigger>
+                      <Collapsible.Indicator
+                        transition="transform 0.2s"
+                        _open={{ transform: "rotate(90deg)" }}
+                      >
+                        <LuChevronRight />
+                      </Collapsible.Indicator>
+                    </Collapsible.Trigger>
+
+                  </Flex>
+                  <Collapsible.Content>
+                    <Flex gap="12px" wrap="wrap" color="gray.600" fontSize="14px">
+                      <Text>CEP {order.cep}</Text>
+                      <Text overflowWrap="anywhere" wordBreak="break-word">{order.shipping.label}: {formatCurrency(order.shipping.value)}</Text>
+                      {order.coupon && (
+                        <Text
+                          color="green.600"
+                          fontWeight="700"
+                          overflowWrap="anywhere"
+                          wordBreak="break-word"
+                        >
+                          Cupom {order.coupon.code}: -{formatCurrency(order.discount)}
+                        </Text>
+                      )}
+                      {order.interest > 0 && (
+                        <Text>Juros: {formatCurrency(order.interest)}</Text>
+                      )}
                     </Flex>
-                  ))}
+                  </Collapsible.Content>
+                  <Collapsible.Content>
+                    <Flex direction="column" gap="8px">
+                      {order.items.map((item) => (
+                        <Flex key={`${order.id}-${item.id}`} justify="space-between" gap="12px" wrap="wrap">
+                          <Text color="gray.700" fontSize="14px" minW="0" overflowWrap="anywhere" wordBreak="break-word">
+                            {item.quantity}x {item.name}
+                          </Text>
+                          <Text fontWeight="800" color="gray.900" fontSize="14px" flexShrink="0">
+                            {formatCurrency(item.subtotal)}
+                          </Text>
+                        </Flex>
+                      ))}
+                    </Flex>
+                  </Collapsible.Content>
                 </Flex>
-              </Flex>
+              </Collapsible.Root>
             ))}
           </Flex>
         )}
