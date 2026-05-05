@@ -28,8 +28,17 @@ export function ProductCard({ product }) {
       });
       setTimeout(() => setAdded(false), 1000);
     } catch {
-      setError(localStorage.getItem('usuarioId') ? 'Quantidade máxima em estoque atingida' : 'Faça login para adicionar ao carrinho');
-      setTimeout(() => setError(''), 2200);
+      setError(localStorage.getItem('usuarioId') ? 
+        showToast({
+          type: 'error',
+          title: 'Quantidade máxima do produto atingida',
+          message: product.name,
+        }) 
+        : showToast({
+          type: 'error',
+          title: 'Faça login para adicionar no carrinho',
+          message: product.name,
+        }));
     }
   };
 
@@ -136,12 +145,6 @@ export function ProductCard({ product }) {
             {product.stock > 0 ? product.stock : 'Esgotado'}
           </Span>
         </Text>
-
-        {error && (
-          <Text color="red.500" fontSize="12px" fontWeight="600" mb="10px">
-            {error}
-          </Text>
-        )}
 
         {product.stock > 0 && (
           <Button
