@@ -50,9 +50,6 @@ export function AdminLayout() {
                 </Text>
 
                 <Flex gap={{ base: '12px', md: '18px' }} fontSize="14px" fontWeight="600" wrap="wrap">
-                    <Box as={Link} to="/" _hover={{ color: '#e27d35' }}>
-                        Loja
-                    </Box>
                     <Box
                         as="button"
                         type="button"

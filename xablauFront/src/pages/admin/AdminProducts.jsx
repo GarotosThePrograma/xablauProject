@@ -250,6 +250,8 @@ export function AdminProducts() {
             Produtos cadastrados
           </Text>
 
+          {/* search */}
+
           {isLoading ? (
             <Text color="gray.600">Carregando produtos...</Text>
           ) : (
