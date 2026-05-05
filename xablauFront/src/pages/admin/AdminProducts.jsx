@@ -112,6 +112,7 @@ export function AdminProducts() {
                   variant="ghost"
                   borderRadius="full"
                   color="#004d8e"
+                  title='Editar'
                   _hover={{ bg: 'orange.50', color: '#e27d35', transform: 'translateY(-1px)' }}
                 >
                   <LuPencil />

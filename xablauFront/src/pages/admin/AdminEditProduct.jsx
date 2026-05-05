@@ -3,6 +3,7 @@ import { Box, Button, Flex, Image, Spinner, Text } from '@chakra-ui/react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PRODUCT_SECTIONS } from '../../store/useProductSectionsStore';
 import { useAdminEditProductStore } from '../../store/useAdminEditProductStore';
+import { Trash2, Undo2 } from 'lucide-react';
 
 function AdminInput(props) {
   return (
@@ -178,6 +179,7 @@ export function AdminEditProduct() {
               color="white"
               borderRadius="8px"
               h="44px"
+              p="5px"
               fontWeight="700"
               isDisabled={isSubmitting}
               onClick={handleUpdate}
@@ -192,11 +194,12 @@ export function AdminEditProduct() {
               fontWeight="700"
               isDisabled={isSubmitting}
               onClick={handleDelete}
+              title='Deletar'
             >
-              Deletar
+              <Trash2 />
             </Button>
-            <Button as={Link} to="/admin/produtos" variant="outline" borderRadius="8px" h="44px">
-              Voltar
+            <Button as={Link} to="/admin/produtos" variant="outline" borderRadius="8px" h="44px" title='Voltar'>
+              <Undo2 />
             </Button>
           </Flex>
         </Flex>
