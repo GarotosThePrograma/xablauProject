@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Flex, Image, Text } from '@chakra-ui/react';
+import { Box, Button, Flex, Image, Text, Collapsible } from '@chakra-ui/react';
 import { createProduct, deleteProduct, getProducts, updateProduct } from '../../services/productsApi';
 import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { useToastStore } from '../../store/useToastStore';
+import { LuChevronRight } from "react-icons/lu"
 
 const emptyForm = {
   name: '',
@@ -253,87 +254,99 @@ export function AdminProducts() {
             <Text color="gray.600">Carregando produtos...</Text>
           ) : (
             products.map((product) => (
-              <Flex
-                key={product.id}
-                align={{ base: 'stretch', md: 'center' }}
-                gap="14px"
-                bg="white"
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="8px"
-                p="14px"
-                wrap="wrap"
-              >
-                <Image
-                  src={imageDrafts[product.id] || product.img}
-                  alt={nameDrafts[product.id] || product.name}
-                  boxSize="72px"
-                  objectFit="contain"
-                  bg="gray.50"
+              <Collapsible.Root>
+                <Flex
+                  key={product.id}
+                  align={{ base: 'stretch', md: 'center' }}
+                  gap="14px"
+                  bg="white"
+                  border="1px solid"
+                  borderColor="gray.200"
                   borderRadius="8px"
-                  alignSelf={{ base: 'center', md: 'auto' }}
-                />
+                  p="14px"
+                  wrap="wrap"
+                >
+                  <Image
+                    src={imageDrafts[product.id] || product.img}
+                    alt={nameDrafts[product.id] || product.name}
+                    boxSize="72px"
+                    objectFit="contain"
+                    bg="gray.50"
+                    borderRadius="8px"
+                    alignSelf={{ base: 'center', md: 'auto' }}
+                  />
+                  <Box flex="1 1 220px" minW="0">
+                    <Text fontWeight="700" color="gray.900" overflowWrap="anywhere" wordBreak="break-word">{nameDrafts[product.id] || product.name}</Text>
+                    <Text color="#e27d35" fontWeight="800">{formatCurrency(Number(priceDrafts[product.id] ?? product.price))}</Text>
+                  </Box>
 
-                <Box flex="1 1 220px" minW="0">
-                  <Text fontWeight="700" color="gray.900" overflowWrap="anywhere" wordBreak="break-word">{nameDrafts[product.id] || product.name}</Text>
-                  <Text color="#e27d35" fontWeight="800">{formatCurrency(Number(priceDrafts[product.id] ?? product.price))}</Text>
-                </Box>
-
-                <Flex align="end" gap="8px" wrap="wrap" w={{ base: '100%', md: 'auto' }}>
-                  <Box w={{ base: '100%', md: '220px' }}>
-                    <Text fontSize="12px" fontWeight="700" mb="5px">Nome</Text>
-                    <AdminInput
-                      value={nameDrafts[product.id] ?? ''}
-                      onChange={(event) => setNameDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
-                    />
-                  </Box>
-                  <Box w={{ base: '100%', md: '260px' }}>
-                    <Text fontSize="12px" fontWeight="700" mb="5px">URL da imagem</Text>
-                    <AdminInput
-                      value={imageDrafts[product.id] ?? ''}
-                      onChange={(event) => setImageDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
-                    />
-                  </Box>
-                  <Box w={{ base: '100%', md: '120px' }}>
-                    <Text fontSize="12px" fontWeight="700" mb="5px">Preço</Text>
-                    <AdminInput
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={priceDrafts[product.id] ?? 0}
-                      onChange={(event) => setPriceDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
-                    />
-                  </Box>
-                  <Box w={{ base: '100%', md: '190px' }}>
-                    <Text fontSize="12px" fontWeight="700" mb="5px">Categoria</Text>
-                    <AdminSelect
-                      value={sectionDrafts[product.id] || getProductSection(product)}
-                      onChange={(event) => setSectionDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                  <Collapsible.Trigger>
+                    <Collapsible.Indicator
+                      transition="transform 0.2s"
+                      _open={{ transform: "rotate(90deg)" }}
                     >
-                      {PRODUCT_SECTIONS.map((section) => (
-                        <option key={section.id} value={section.id}>
-                          {section.label}
-                        </option>
-                      ))}
-                    </AdminSelect>
-                  </Box>
-                  <Box w={{ base: '100%', md: '110px' }}>
-                    <Text fontSize="12px" fontWeight="700" mb="5px">Estoque</Text>
-                    <AdminInput
-                      type="number"
-                      min="0"
-                      value={stockDrafts[product.id] ?? 0}
-                      onChange={(event) => setStockDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
-                    />
-                  </Box>
-                  <Button borderRadius="8px" variant="outline" p="5px" w={{ base: '100%', md: 'auto' }} onClick={() => handleUpdateProduct(product.id)}>
-                    Atualizar
-                  </Button>
-                  <Button borderRadius="8px" p="5px" colorPalette="red" w={{ base: '100%', md: 'auto' }} onClick={() => handleDeleteProduct(product.id)}>
-                    Deletar
-                  </Button>
+                      <LuChevronRight />
+                    </Collapsible.Indicator>
+                  </Collapsible.Trigger>
+
+                  <Collapsible.Content>
+                    <Flex align="end" gap="8px" wrap="wrap" w={{ base: '100%', md: 'auto' }}>
+                      <Box w={{ base: '100%', md: '220px' }}>
+                        <Text fontSize="12px" fontWeight="700" mb="5px">Nome</Text>
+                        <AdminInput
+                          value={nameDrafts[product.id] ?? ''}
+                          onChange={(event) => setNameDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                        />
+                      </Box>
+                      <Box w={{ base: '100%', md: '260px' }}>
+                        <Text fontSize="12px" fontWeight="700" mb="5px">URL da imagem</Text>
+                        <AdminInput
+                          value={imageDrafts[product.id] ?? ''}
+                          onChange={(event) => setImageDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                        />
+                      </Box>
+                      <Box w={{ base: '100%', md: '120px' }}>
+                        <Text fontSize="12px" fontWeight="700" mb="5px">Preço</Text>
+                        <AdminInput
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={priceDrafts[product.id] ?? 0}
+                          onChange={(event) => setPriceDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                        />
+                      </Box>
+                      <Box w={{ base: '100%', md: '190px' }}>
+                        <Text fontSize="12px" fontWeight="700" mb="5px">Categoria</Text>
+                        <AdminSelect
+                          value={sectionDrafts[product.id] || getProductSection(product)}
+                          onChange={(event) => setSectionDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                        >
+                          {PRODUCT_SECTIONS.map((section) => (
+                            <option key={section.id} value={section.id}>
+                              {section.label}
+                            </option>
+                          ))}
+                        </AdminSelect>
+                      </Box>
+                      <Box w={{ base: '100%', md: '110px' }}>
+                        <Text fontSize="12px" fontWeight="700" mb="5px">Estoque</Text>
+                        <AdminInput
+                          type="number"
+                          min="0"
+                          value={stockDrafts[product.id] ?? 0}
+                          onChange={(event) => setStockDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                        />
+                      </Box>
+                      <Button borderRadius="8px" variant="outline" p="5px" w={{ base: '100%', md: 'auto' }} onClick={() => handleUpdateProduct(product.id)}>
+                        Atualizar
+                      </Button>
+                      <Button borderRadius="8px" p="5px" colorPalette="red" w={{ base: '100%', md: 'auto' }} onClick={() => handleDeleteProduct(product.id)}>
+                        Deletar
+                      </Button>
+                    </Flex>
+                  </Collapsible.Content>
                 </Flex>
-              </Flex>
+              </Collapsible.Root>
             ))
           )}
         </Flex>
