@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Flex, Image, Text } from '@chakra-ui/react';
 import { createProduct, deleteProduct, getProducts, updateProduct } from '../../services/productsApi';
 import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
-import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
 import { useToastStore } from '../../store/useToastStore';
 
 const emptyForm = {
@@ -13,60 +12,11 @@ const emptyForm = {
   section: 'hardware',
 };
 
-const emptyCouponForm = {
-  code: '',
-  durationMinutes: '',
-  discountPercent: '',
-};
-
 function formatCurrency(value) {
   return value.toLocaleString('pt-BR', {
     style: 'currency',
     currency: 'BRL',
   });
-}
-
-function formatCouponEndDate(date) {
-  const formattedDate = date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
-  const formattedTime = date.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  return `${formattedDate} às ${formattedTime}`;
-}
-
-function getCouponEndText(durationMinutes, expiresAt) {
-  const minutes = Number(durationMinutes);
-
-  if (!minutes || !expiresAt) {
-    return 'Sem data de término';
-  }
-
-  const endDate = new Date(expiresAt);
-
-  if (minutes > 1440) {
-    return `Acaba em ${formatCouponEndDate(endDate)}`;
-  }
-
-  return `Expira às ${endDate.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })}`;
-}
-
-function getCouponDurationPreview(durationMinutes) {
-  const minutes = Number(durationMinutes);
-
-  if (!minutes || minutes <= 1440) {
-    return '';
-  }
-
-  return `Acabará em ${formatCouponEndDate(new Date(Date.now() + minutes * 60 * 1000))}`;
 }
 
 function AdminInput(props) {
@@ -103,7 +53,6 @@ function AdminSelect(props) {
 export function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
-  const [couponForm, setCouponForm] = useState(emptyCouponForm);
   const [nameDrafts, setNameDrafts] = useState({});
   const [imageDrafts, setImageDrafts] = useState({});
   const [priceDrafts, setPriceDrafts] = useState({});
@@ -114,11 +63,7 @@ export function AdminProducts() {
   const getProductSection = useProductSectionsStore((state) => state.getProductSection);
   const setProductSection = useProductSectionsStore((state) => state.setProductSection);
   const removeProductSection = useProductSectionsStore((state) => state.removeProductSection);
-  const coupons = useCouponsStore((state) => state.coupons);
-  const addCoupon = useCouponsStore((state) => state.addCoupon);
-  const removeCoupon = useCouponsStore((state) => state.removeCoupon);
   const showToast = useToastStore((state) => state.showToast);
-  const couponDurationPreview = getCouponDurationPreview(couponForm.durationMinutes);
 
   const loadProducts = useCallback(async () => {
     try {
@@ -220,26 +165,6 @@ export function AdminProducts() {
     }
   };
 
-  const handleCouponChange = (field, value) => {
-    setCouponForm((current) => ({
-      ...current,
-      [field]: field === 'code' ? normalizeCouponCode(value) : value,
-    }));
-  };
-
-  const handleCreateCoupon = (event) => {
-    event.preventDefault();
-    setMessage('');
-
-    try {
-      addCoupon(couponForm);
-      setCouponForm(emptyCouponForm);
-      setMessage('Cupom adicionado com sucesso.');
-    } catch (error) {
-      setMessage(error.message || 'Não foi possível adicionar o cupom.');
-    }
-  };
-
   return (
     <Box p={{ base: '24px 16px', md: '32px 24px' }}>
       <Flex direction="column" gap="24px" maxW="1180px" mx="auto">
@@ -318,92 +243,6 @@ export function AdminProducts() {
             {message}
           </Text>
         )}
-
-        <Flex
-          direction="column"
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius="8px"
-          p={{ base: '16px', md: '20px' }}
-          gap="12px"
-        >
-          <Box>
-            <Text fontSize="18px" fontWeight="700" color="gray.900">
-              Cupons
-            </Text>
-            <Text color="gray.600" fontSize="14px">
-              O código fica sempre maiúsculo e sem espaços.
-            </Text>
-          </Box>
-
-          <Flex as="form" onSubmit={handleCreateCoupon} gap="12px" wrap="wrap" align="end">
-            <Box flex="1 1 180px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Nome do cupom</Text>
-              <AdminInput value={couponForm.code} onChange={(event) => handleCouponChange('code', event.target.value)} placeholder="XABLAU10" required />
-            </Box>
-
-            <Box flex="1 1 180px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Duração (minutos)</Text>
-              <AdminInput type="number" min="1" value={couponForm.durationMinutes} onChange={(event) => handleCouponChange('durationMinutes', event.target.value)} placeholder="30" required />
-              {couponDurationPreview && (
-                <Text fontSize="12px" color="gray.600" fontWeight="600" mt="5px">
-                  {couponDurationPreview}
-                </Text>
-              )}
-            </Box>
-
-            <Box flex="1 1 160px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Desconto (%)</Text>
-              <AdminInput type="number" min="1" max="100" value={couponForm.discountPercent} onChange={(event) => handleCouponChange('discountPercent', event.target.value)} placeholder="10" required />
-            </Box>
-
-            <Button
-              type="submit"
-              w={{ base: '100%', md: 'auto' }}
-              bg="linear-gradient(to top, #004d8e, #3695e3)"
-              color="white"
-              borderRadius="8px"
-              p="5px"
-              _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
-            >
-              Adicionar cupom
-            </Button>
-          </Flex>
-
-          <Flex direction="column" gap="8px">
-            {coupons.length === 0 ? (
-              <Text color="gray.600" fontSize="14px">Nenhum cupom cadastrado.</Text>
-            ) : coupons.map((coupon) => (
-              <Flex key={coupon.id} justify="space-between" align={{ base: 'stretch', md: 'center' }} direction={{ base: 'column', md: 'row' }} border="1px solid" borderColor="gray.200" borderRadius="8px" p="10px" gap="12px">
-                <Box minW="0">
-                  <Text
-                    fontWeight="800"
-                    color="gray.900"
-                    overflowWrap="anywhere"
-                    wordBreak="break-word"
-                    whiteSpace="normal"
-                  >
-                    {coupon.code}
-                  </Text>
-                  <Text fontSize="13px" color="gray.600">
-                    {coupon.discountPercent}% de desconto por {coupon.durationMinutes || 'sem limite'} min
-                  </Text>
-                  {coupon.expiresAt && (
-                    <Text fontSize="12px" color={isCouponExpired(coupon) ? 'red.500' : 'green.600'} fontWeight="700">
-                      {isCouponExpired(coupon)
-                        ? 'Expirado'
-                        : getCouponEndText(coupon.durationMinutes, coupon.expiresAt)}
-                    </Text>
-                  )}
-                </Box>
-                <Button borderRadius="8px" p="5px" colorPalette="red" flexShrink="0" onClick={() => removeCoupon(coupon.id)}>
-                  Remover
-                </Button>
-              </Flex>
-            ))}
-          </Flex>
-        </Flex>
 
         <Flex id="admin-products-list" direction="column" gap="12px" scrollMarginTop="90px">
           <Text fontSize="18px" fontWeight="700" color="gray.900">

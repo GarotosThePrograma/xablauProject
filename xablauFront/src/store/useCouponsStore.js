@@ -32,6 +32,49 @@ export function isCouponExpired(coupon) {
   return Date.now() > new Date(coupon.expiresAt).getTime();
 }
 
+export function formatCouponEndDate(date) {
+  const formattedDate = date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+  const formattedTime = date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return `${formattedDate} às ${formattedTime}`;
+}
+
+export function getCouponEndText(durationMinutes, expiresAt) {
+  const minutes = Number(durationMinutes);
+
+  if (!minutes || !expiresAt) {
+    return 'Sem data de término';
+  }
+
+  const endDate = new Date(expiresAt);
+
+  if (minutes > 1440) {
+    return `Acaba em ${formatCouponEndDate(endDate)}`;
+  }
+
+  return `Expira às ${endDate.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })}`;
+}
+
+export function getCouponDurationPreview(durationMinutes) {
+  const minutes = Number(durationMinutes);
+
+  if (!minutes || minutes <= 1440) {
+    return '';
+  }
+
+  return `Acabará em ${formatCouponEndDate(new Date(Date.now() + minutes * 60 * 1000))}`;
+}
+
 export const useCouponsStore = create((set, get) => ({
   coupons: loadCoupons(),
 

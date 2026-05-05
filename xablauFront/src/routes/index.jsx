@@ -13,6 +13,7 @@ import { Favorites } from '../pages/user/Favorites'
 import { Search } from '../pages/user/Search'
 import { AdminProducts } from '../pages/admin/AdminProducts'
 import { AdminOrders } from '../pages/admin/AdminOrders'
+import { AdminCoupons } from '../pages/admin/AdminCoupons'
 import { useAdminAuthStore } from '../store/useAdminAuthStore'
 
 function AdminProtectedRoute() {
@@ -29,7 +30,6 @@ export function AppRoutes() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* USER */}
                 <Route element= { <UserLayout /> }>
                     <Route path='/' element= { <Home /> } />
                     <Route path='/product/:id' element= { <ProductDetails /> } />
@@ -41,15 +41,14 @@ export function AppRoutes() {
                     <Route path='/search' element= { <Search /> } />
                 </Route>
 
-                {/* ADMIN */}
                 <Route element= { <AdminProtectedRoute /> }>
                     <Route element= { <AdminLayout /> }>
                         <Route path='/admin/produtos' element= { <AdminProducts /> } />
                         <Route path='/admin/pedidos' element= { <AdminOrders /> } />
+                        <Route path='/admin/cupons' element= { <AdminCoupons /> } />
                     </Route>
                 </Route>
             </Routes> 
-
         </BrowserRouter>
     )
 }
