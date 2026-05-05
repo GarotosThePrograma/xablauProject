@@ -1,10 +1,12 @@
 import { registerSchema } from './schemas/authSchema';
+import { ToastContainer } from '../../../components/common/ToastContainer';
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Button, Flex, Text } from '@chakra-ui/react';
+import { useToastStore } from '../../../store/useToastStore';
 
 function getFirstErrorMessage(formErrors) {
   return Object.values(formErrors).find((error) => error?.message)?.message;
@@ -15,6 +17,7 @@ export function Register() {
   const navigate = useNavigate();
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const showToast = (useToastStore((state) => state.showToast));
 
   const {
     register,
@@ -58,9 +61,17 @@ export function Register() {
       }
 
       const message = data.mensagem || 'Não foi possível realizar o cadastro';
+      showToast({
+        type: 'error',
+        title: 'Não foi possível realizar o cadastro',
+      });
       setFeedback({ type: 'error', message });
     } catch {
       const message = 'Não foi possível conectar ao servidor';
+      showToast({
+        type: 'error',
+        title: 'Não foi possível conectar ao servidor',
+      });
       setFeedback({ type: 'error', message });
     } finally {
       setIsSubmitting(false);

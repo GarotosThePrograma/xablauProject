@@ -8,6 +8,8 @@ import { loginSchema } from './schemas/authSchema'
 import { PageLoadingBar } from '../../../components/common/PageLoadingBar';
 import { useAuthStore } from '../../../store/useAuthStore';
 import { useAdminAuthStore } from '../../../store/useAdminAuthStore';
+import { ToastContainer } from '../../../components/common/ToastContainer';
+import { useToastStore } from '../../../store/useToastStore';
 
 function getFirstErrorMessage(formErrors) {
   return Object.values(formErrors).find((error) => error?.message)?.message;
@@ -21,6 +23,7 @@ export function Login() {
   const logoutAdmin = useAdminAuthStore((state) => state.logoutAdmin);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const showToast = useToastStore((state) => state.showToast);
 
   const {
     register,
@@ -83,6 +86,11 @@ export function Login() {
       setFeedback({ type: 'error', message });
     } catch {
       const message = 'Não foi possível conectar ao servidor';
+      showToast({
+        type: 'error',
+        title: 'Não foi possível conectar ao servidor',
+        message: 'Tente novamente mais tarde'
+      });
       setFeedback({ type: 'error', message });
     } finally {
       setIsSubmitting(false);
