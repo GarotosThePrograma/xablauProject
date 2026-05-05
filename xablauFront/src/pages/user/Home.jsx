@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { ProductCard } from '../../components/common/ProductCard';
-import { getProducts } from '../../features/products/products';
+import { getProducts } from '../../services/productsApi';
 import { isCouponExpired, useCouponsStore } from '../../store/useCouponsStore';
 import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
 

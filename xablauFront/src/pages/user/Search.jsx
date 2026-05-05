@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { ProductCard } from '../../components/common/ProductCard';
-import { getProducts } from '../../features/products/products';
+import { getProducts } from '../../services/productsApi';
 
 function ProductCardSkeleton() {
   return (

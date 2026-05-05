@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Box, Button, Flex, Text } from '@chakra-ui/react';
 import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { ProductCard } from '../../components/common/ProductCard';
-import { getProducts } from '../../features/products/products';
+import { getProducts } from '../../services/productsApi';
 import { useFavoritesStore } from '../../store/useFavoritesStore';
 
 function ProductCardSkeleton() {

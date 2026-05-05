@@ -1,5 +1,4 @@
 import { registerSchema } from './schemas/authSchema';
-import { ToastContainer } from '../../../components/common/ToastContainer';
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';

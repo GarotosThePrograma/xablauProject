@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Flex, Image, Text } from '@chakra-ui/react';
-import { createProduct, deleteProduct, getProducts, updateProduct } from '../../features/products/products';
+import { createProduct, deleteProduct, getProducts, updateProduct } from '../../services/productsApi';
 import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
 import { useToastStore } from '../../store/useToastStore';
