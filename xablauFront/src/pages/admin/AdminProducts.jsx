@@ -1,17 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Flex, Image, Text, Collapsible } from '@chakra-ui/react';
-import { createProduct, deleteProduct, getProducts, updateProduct } from '../../services/productsApi';
+import { Link } from 'react-router-dom';
+import { deleteProduct, getProducts, updateProduct } from '../../services/productsApi';
 import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { useToastStore } from '../../store/useToastStore';
 import { LuChevronRight } from "react-icons/lu"
-
-const emptyForm = {
-  name: '',
-  price: '',
-  stock: '',
-  img: '',
-  section: 'hardware',
-};
 
 function formatCurrency(value) {
   return value.toLocaleString('pt-BR', {
@@ -53,7 +46,6 @@ function AdminSelect(props) {
 
 export function AdminProducts() {
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState(emptyForm);
   const [nameDrafts, setNameDrafts] = useState({});
   const [imageDrafts, setImageDrafts] = useState({});
   const [priceDrafts, setPriceDrafts] = useState({});
@@ -86,25 +78,6 @@ export function AdminProducts() {
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
-
-  const handleChange = (field, value) => {
-    setForm((current) => ({ ...current, [field]: value }));
-  };
-
-  const handleCreateProduct = async (event) => {
-    event.preventDefault();
-    setMessage('');
-
-    try {
-      const createdProduct = await createProduct(form);
-      setProductSection(createdProduct.id, form.section);
-      setForm(emptyForm);
-      setMessage('Produto adicionado com sucesso.');
-      await loadProducts();
-    } catch {
-      setMessage('Não foi possível adicionar o produto.');
-    }
-  };
 
   const handleUpdateProduct = async (productId) => {
     setMessage('');
@@ -169,78 +142,31 @@ export function AdminProducts() {
   return (
     <Box p={{ base: '24px 16px', md: '32px 24px' }}>
       <Flex direction="column" gap="24px" maxW="1180px" mx="auto">
-        <Box>
-          <Text fontSize={{ base: '24px', md: '28px' }} fontWeight="800" color="gray.900">
-            Produtos
-          </Text>
-          <Text color="gray.600">
-            Adicione produtos, remova itens e ajuste estoque.
-          </Text>
-        </Box>
-
-        <Flex
-          as="form"
-          onSubmit={handleCreateProduct}
-          direction="column"
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius="8px"
-          p={{ base: '16px', md: '20px' }}
-          gap="12px"
-        >
-          <Text fontSize="18px" fontWeight="700" color="gray.900">
-            Novo produto
-          </Text>
-
-          <Flex gap="12px" wrap="wrap">
-            <Box flex="1 1 260px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Nome</Text>
-              <AdminInput value={form.name} onChange={(event) => handleChange('name', event.target.value)} required />
-            </Box>
-
-            <Box flex="1 1 260px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">URL da imagem</Text>
-              <AdminInput value={form.img} onChange={(event) => handleChange('img', event.target.value)} required />
-            </Box>
-
-            <Box flex="1 1 160px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Preço</Text>
-              <AdminInput type="number" step="0.01" min="0" value={form.price} onChange={(event) => handleChange('price', event.target.value)} required />
-            </Box>
-
-            <Box flex="1 1 120px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Estoque</Text>
-              <AdminInput type="number" min="0" value={form.stock} onChange={(event) => handleChange('stock', event.target.value)} required />
-            </Box>
-
-            <Box flex="1 1 190px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">Categoria na Home</Text>
-              <AdminSelect value={form.section} onChange={(event) => handleChange('section', event.target.value)}>
-                {PRODUCT_SECTIONS.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    {section.label}
-                  </option>
-                ))}
-              </AdminSelect>
-            </Box>
-          </Flex>
+        <Flex align={{ base: 'stretch', md: 'flex-end' }} justify="space-between" gap="12px" wrap="wrap">
+          <Box>
+            <Text fontSize={{ base: '24px', md: '28px' }} fontWeight="800" color="gray.900">
+              Produtos
+            </Text>
+            <Text color="gray.600">
+              Remova itens e ajuste estoque.
+            </Text>
+          </Box>
 
           <Button
-            type="submit"
-            alignSelf={{ base: 'stretch', md: 'flex-start' }}
+            as={Link}
+            to="/admin/produtos/novo"
             bg="linear-gradient(to top, #004d8e, #3695e3)"
             color="white"
             borderRadius="8px"
             p="5px"
             _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
           >
-            Adicionar produto
+            Novo produto
           </Button>
         </Flex>
 
         {message && (
-          <Text fontWeight="700" color={message.includes('sucesso') || message.includes('atualizado') || message.includes('removido') ? 'green.600' : 'red.500'}>
+          <Text fontWeight="700" color={message.includes('atualizado') || message.includes('removido') ? 'green.600' : 'red.500'}>
             {message}
           </Text>
         )}
@@ -250,15 +176,12 @@ export function AdminProducts() {
             Produtos cadastrados
           </Text>
 
-          {/* search */}
-
           {isLoading ? (
             <Text color="gray.600">Carregando produtos...</Text>
           ) : (
             products.map((product) => (
-              <Collapsible.Root>
+              <Collapsible.Root key={product.id}>
                 <Flex
-                  key={product.id}
                   align={{ base: 'stretch', md: 'center' }}
                   gap="14px"
                   bg="white"
