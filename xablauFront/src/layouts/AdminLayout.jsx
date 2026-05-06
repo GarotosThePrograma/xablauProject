@@ -1,10 +1,12 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAdminAuthStore } from '../store/useAdminAuthStore';
+import { useAdminProductsFiltersStore } from '../store/useAdminProductsFiltersStore';
 
 export function AdminLayout() {
     const navigate = useNavigate();
     const logoutAdmin = useAdminAuthStore((state) => state.logoutAdmin);
+    const clearFilters = useAdminProductsFiltersStore((state) => state.clearFilters);
 
     const scrollToProducts = () => {
         const productsList = document.getElementById('admin-products-list');
@@ -21,6 +23,7 @@ export function AdminLayout() {
     };
 
     const handleLogout = () => {
+        clearFilters();
         logoutAdmin();
         navigate('/login');
     };
