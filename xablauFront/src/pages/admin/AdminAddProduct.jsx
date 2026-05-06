@@ -128,7 +128,7 @@ export function AdminAddProduct() {
               {isSubmitting ? 'Salvando...' : 'Adicionar produto'}
             </Button>
 
-            <Button type="button" variant="outline" borderRadius="8px" onClick={() => navigate('/admin/produtos')}>
+            <Button type="button" variant="outline" borderRadius="8px" p="5px" onClick={() => navigate('/admin/produtos')}>
               Cancelar
             </Button>
           </Flex>

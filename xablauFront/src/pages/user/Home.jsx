@@ -71,20 +71,17 @@ function ProductSectionCarousel({ section }) {
     const cardStep = firstCard ? firstCard.getBoundingClientRect().width + 14 : 224;
     const visibleWidth = trackRef.current.clientWidth;
     const scrollAmount = Math.max(cardStep, Math.floor(visibleWidth / cardStep) * cardStep);
-    const maxScroll = trackRef.current.scrollWidth - visibleWidth;
+    const maxScroll = Math.max(trackRef.current.scrollWidth - visibleWidth, 0);
     const currentScroll = trackRef.current.scrollLeft;
+    const isAtStart = currentScroll <= 4;
+    const isAtEnd = currentScroll >= maxScroll - 4;
 
-    if (direction === 'next') {
-      trackRef.current.scrollTo({
-        left: currentScroll + scrollAmount >= maxScroll - 4 ? 0 : currentScroll + scrollAmount,
-        behavior: 'smooth',
-      });
-
-      return;
-    }
+    const nextScroll = direction === 'next'
+      ? (isAtEnd ? 0 : Math.min(currentScroll + scrollAmount, maxScroll))
+      : (isAtStart ? maxScroll : Math.max(currentScroll - scrollAmount, 0));
 
     trackRef.current.scrollTo({
-      left: currentScroll <= 4 ? maxScroll : currentScroll - scrollAmount,
+      left: nextScroll,
       behavior: 'smooth',
     });
   };
@@ -140,6 +137,8 @@ function ProductSectionCarousel({ section }) {
         gap="14px"
         overflowX="hidden"
         scrollBehavior="smooth"
+        scrollSnapType={{ base: 'x mandatory', md: 'none' }}
+        scrollPaddingInline={{ base: '0px', md: '0px' }}
         w="100%"
         maxW="100%"
         minW="0"
@@ -152,6 +151,8 @@ function ProductSectionCarousel({ section }) {
             minW="0"
             maxW={{ base: '100%', md: 'none' }}
             justify="center"
+            scrollSnapAlign={{ base: 'center', md: 'none' }}
+            scrollSnapStop={{ base: 'always', md: 'normal' }}
           >
             <ProductCard product={product} />
           </Flex>
