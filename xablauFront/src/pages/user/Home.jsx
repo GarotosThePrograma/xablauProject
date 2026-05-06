@@ -133,6 +133,7 @@ function ProductSectionCarousel({ section }) {
       </Flex>
 
       <Flex
+        p="10px 0"
         ref={trackRef}
         gap="14px"
         overflowX="hidden"
