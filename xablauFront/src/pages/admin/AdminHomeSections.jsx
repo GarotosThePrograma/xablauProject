@@ -1,36 +1,17 @@
 import { Box, Button, Flex, IconButton, Text } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { ArrowDown, ArrowUp, Layers3, Trash2 } from 'lucide-react';
-import { useAdminHomeSectionsStore } from '../../store/useAdminHomeSectionsStore';
 import { useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { useEffect, useRef, useState } from 'react';
 import { getProducts } from '../../services/productsApi';
 import { useToastStore } from '../../store/useToastStore';
+import { Link } from 'react-router-dom';
 
-
-function AdminInput(props) {
-  return (
-    <Box
-      as="input"
-      border="1px solid #cbd5e1"
-      borderRadius="8px"
-      p="9px 10px"
-      fontSize="14px"
-      outline="none"
-      w="100%"
-      {...props}
-    />
-  );
-}
 
 export function AdminHomeSections() {
   const showToast = useToastStore((state) => state.showToast);
   const sections = useProductSectionsStore((state) => state.sections);
   const moveSection = useProductSectionsStore((state) => state.moveSection);
-  const form = useAdminHomeSectionsStore((state) => state.form);
-  const isSubmitting = useAdminHomeSectionsStore((state) => state.isSubmitting);
-  const setField = useAdminHomeSectionsStore((state) => state.setField);
-  const submitSection = useAdminHomeSectionsStore((state) => state.submitSection);
   const deleteSection = useProductSectionsStore((state) => state.deleteSection);
 
   const [products, setProducts] = useState([]);
@@ -43,7 +24,8 @@ export function AdminHomeSections() {
       try {
         const data = await getProducts();
         setProducts(data);
-      } catch {
+      } 
+      catch {
         showToast({
           type: 'error',
           title: 'Não foi possivel carregar os produtos para validar as seções.',
@@ -54,7 +36,7 @@ export function AdminHomeSections() {
     }
 
     loadProducts();
-  }, []);
+  });
 
   useEffect(() => {
     if (!deleteMessage) {
@@ -94,73 +76,34 @@ export function AdminHomeSections() {
     }, 520);
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    try {
-      submitSection();
-    } catch {
-      // feedback already handled by store
-    }
-  };
-
   return (
     <Box p={{ base: '24px 16px', md: '32px 24px' }}>
       <Flex direction="column" gap="24px" maxW="1180px" mx="auto">
-        <Box>
-          <Text fontSize={{ base: '24px', md: '28px' }} fontWeight="800" color="gray.900">
-            Seções da home
-          </Text>
-          <Text color="gray.600">
-            Adicione novas seções para organizar os carrosséis da home.
-          </Text>
-        </Box>
-
-        <Flex
-          direction="column"
-          bg="white"
-          border="1px solid"
-          borderColor="gray.200"
-          borderRadius="8px"
-          p={{ base: '16px', md: '20px' }}
-          gap="12px"
-        >
+        <Flex justify='space-between'>
           <Box>
-            <Text fontSize="18px" fontWeight="700" color="gray.900">
-              Nova seção
+            <Text fontSize={{ base: '24px', md: '28px' }} fontWeight="800" color="gray.900">
+              Seções da home
             </Text>
-            <Text color="gray.600" fontSize="14px">
-              O identificador interno é gerado automaticamente a partir do nome.
+            <Text color="gray.600">
+              Adicione novas seções para organizar os carrosséis da home.
             </Text>
           </Box>
 
-          <Flex as="form" onSubmit={handleSubmit} gap="12px" wrap="wrap" align="end">
-            <Box flex="1 1 260px">
-              <Text fontSize="13px" fontWeight="700" mb="6px">
-                Nome da seção
-              </Text>
-              <AdminInput
-                value={form.label}
-                onChange={(event) => setField('label', event.target.value)}
-                placeholder="Ex.: Cadeiras Gamer"
-                required
-              />
-            </Box>
-
-            <Button
-              type="submit"
-              leftIcon={<Layers3 size={16} />}
-              bg="linear-gradient(to top, #004d8e, #3695e3)"
-              color="white"
-              borderRadius="8px"
-              p="5px"
-              isDisabled={isSubmitting}
-              _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
-            >
-              {isSubmitting ? 'Salvando...' : 'Adicionar'}
+          <Button
+            as={Link}
+            to="/admin/secoes/nova"
+            bg="linear-gradient(to top, #004d8e, #3695e3)"
+            color="white"
+            borderRadius="8px"
+            p="5px"
+            textDecoration='none'
+            _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
+          >
+            Nova seção
             </Button>
-          </Flex>
         </Flex>
+
+        
 
         <Flex
           direction="column"

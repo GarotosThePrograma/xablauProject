@@ -62,12 +62,11 @@ export function AdminLayout() {
                     >
                         Produtos
                     </Box>
-                    <Box as={Link} to="/admin/produtos/novo" _hover={{ color: '#e27d35' }}>
-                        Novo produto
-                    </Box>
-                    <Box as={Link} to="/admin/home/secoes" _hover={{ color: '#e27d35' }}>
+
+                    <Box as={Link} to="/admin/secoes" _hover={{ color: '#e27d35' }}>
                         Seções da home
                     </Box>
+    
                     <Box
                         as={Link}
                         to="admin/cupons"
