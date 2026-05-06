@@ -15,6 +15,7 @@ import { AdminProducts } from '../pages/admin/AdminProducts'
 import { AdminAddProduct } from '../pages/admin/AdminAddProduct'
 import { AdminEditProduct } from '../pages/admin/AdminEditProduct'
 import { AdminOrders } from '../pages/admin/AdminOrders'
+import { AdminHomeSections } from '../pages/admin/AdminHomeSections'
 import { AdminCoupons } from '../pages/admin/AdminCoupons'
 import { useAdminAuthStore } from '../store/useAdminAuthStore'
 
@@ -49,6 +50,7 @@ export function AppRoutes() {
                         <Route path='/admin/produtos/novo' element= { <AdminAddProduct /> } />
                         <Route path='/admin/produtos/editar/:id' element= { <AdminEditProduct /> } />
                         <Route path='/admin/pedidos' element= { <AdminOrders /> } />
+                        <Route path='/admin/home/secoes' element= { <AdminHomeSections /> } />
                         <Route path='/admin/cupons' element= { <AdminCoupons /> } />
                     </Route>
                 </Route>

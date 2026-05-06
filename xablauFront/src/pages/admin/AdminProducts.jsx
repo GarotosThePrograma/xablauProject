@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { FilterX, Search } from 'lucide-react';
 import { LuPencil } from 'react-icons/lu';
 import { getProducts } from '../../services/productsApi';
-import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
+import { useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { useAdminProductsFiltersStore } from '../../store/useAdminProductsFiltersStore';
 
 function formatCurrency(value) {
@@ -50,6 +50,7 @@ export function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const sections = useProductSectionsStore((state) => state.sections);
   const getProductSection = useProductSectionsStore((state) => state.getProductSection);
   const search = useAdminProductsFiltersStore((state) => state.search);
   const stock = useAdminProductsFiltersStore((state) => state.stock);
@@ -163,7 +164,7 @@ export function AdminProducts() {
               <Text fontSize="13px" fontWeight="700" mb="6px">Tipo</Text>
               <AdminSelect value={section} onChange={(event) => setSection(event.target.value)}>
                 <option value="all">Todos</option>
-                {PRODUCT_SECTIONS.map((item) => (
+                {sections.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.label}
                   </option>

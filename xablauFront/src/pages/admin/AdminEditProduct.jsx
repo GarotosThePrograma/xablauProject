@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Box, Button, Flex, Image, Spinner, Text } from '@chakra-ui/react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { PRODUCT_SECTIONS } from '../../store/useProductSectionsStore';
+import { useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { useAdminEditProductStore } from '../../store/useAdminEditProductStore';
 import { Trash2, Undo2 } from 'lucide-react';
 
@@ -39,6 +39,7 @@ function AdminSelect(props) {
 export function AdminEditProduct() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const sections = useProductSectionsStore((state) => state.sections);
   const form = useAdminEditProductStore((state) => state.form);
   const isLoading = useAdminEditProductStore((state) => state.isLoading);
   const isSubmitting = useAdminEditProductStore((state) => state.isSubmitting);
@@ -158,7 +159,7 @@ export function AdminEditProduct() {
             <Box flex="1 1 190px">
               <Text fontSize="13px" fontWeight="700" mb="6px">Categoria na Home</Text>
               <AdminSelect value={form.section} onChange={(event) => setField('section', event.target.value)}>
-                {PRODUCT_SECTIONS.map((section) => (
+                {sections.map((section) => (
                   <option key={section.id} value={section.id}>
                     {section.label}
                   </option>

@@ -7,7 +7,7 @@ import { PageLoadingBar } from '../../components/common/PageLoadingBar';
 import { ProductCard } from '../../components/common/ProductCard';
 import { getProducts } from '../../services/productsApi';
 import { isCouponExpired, useCouponsStore } from '../../store/useCouponsStore';
-import { PRODUCT_SECTIONS, useProductSectionsStore } from '../../store/useProductSectionsStore';
+import { useProductSectionsStore } from '../../store/useProductSectionsStore';
 
 function ProductCardSkeleton() {
   return (
@@ -390,6 +390,7 @@ function OffersCarousel({ products }) {
 export function Home() {
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  const sections = useProductSectionsStore((state) => state.sections)
   const getProductSection = useProductSectionsStore((state) => state.getProductSection)
 
   useEffect(() => {
@@ -413,7 +414,7 @@ export function Home() {
     return a.id - b.id;
   });
 
-  const productsBySection = PRODUCT_SECTIONS.map((section) => ({
+  const productsBySection = sections.map((section) => ({
     ...section,
     products: sortedProducts.filter((product) => getProductSection(product) === section.id),
   }));
