@@ -1,7 +1,10 @@
 import { Box, Button, Flex, IconButton, Text } from '@chakra-ui/react';
-import { ArrowDown, ArrowUp, Layers3 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowDown, ArrowUp, Layers3, Trash2 } from 'lucide-react';
 import { useAdminHomeSectionsStore } from '../../store/useAdminHomeSectionsStore';
 import { useProductSectionsStore } from '../../store/useProductSectionsStore';
+import { useEffect, useState } from 'react';
+import { getProducts } from '../../services/productsApi';
 
 function AdminInput(props) {
   return (
@@ -26,6 +29,23 @@ export function AdminHomeSections() {
   const isSubmitting = useAdminHomeSectionsStore((state) => state.isSubmitting);
   const setField = useAdminHomeSectionsStore((state) => state.setField);
   const submitSection = useAdminHomeSectionsStore((state) => state.submitSection);
+  const deleteSection = useProductSectionsStore((state) => state.deleteSection);
+
+  const [products, setProducts] = useState([]);
+  const [deleteMessage, setDeleteMessage] = useState('');
+
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const data = await getProducts();
+        setProducts(data);
+      } catch {
+        setDeleteMessage('Não foi possivel carregar os produtos para validar as seções.')
+      }
+    }
+
+    loadProducts();
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -45,7 +65,7 @@ export function AdminHomeSections() {
             Seções da home
           </Text>
           <Text color="gray.600">
-            Adicione novas seções para organizar os carrosséis da home sem espalhar regras pela interface.
+            Adicione novas seções para organizar os carrosséis da home.
           </Text>
         </Box>
 
@@ -90,9 +110,15 @@ export function AdminHomeSections() {
               isDisabled={isSubmitting}
               _hover={{ bg: 'linear-gradient(to top, #00325a, #1f66a0)' }}
             >
-              {isSubmitting ? 'Salvando...' : 'Adicionar seção'}
+              {isSubmitting ? 'Salvando...' : 'Adicionar'}
             </Button>
           </Flex>
+
+          {deleteMessage && (
+            <Text fontWeight="700" color={deleteMessage.includes('sucesso') ? 'green.600' : 'red.500'}>
+              {deleteMessage}
+            </Text>
+          )}
 
           {message && (
             <Text fontWeight="700" color={message.includes('sucesso') ? 'green.600' : 'red.500'}>
@@ -116,52 +142,82 @@ export function AdminHomeSections() {
 
           <Flex direction="column" gap="8px">
             {sections.map((section, index) => (
-              <Flex
+              <Box
+                as={motion.div}
                 key={section.id}
-                justify="space-between"
-                align={{ base: 'stretch', md: 'center' }}
-                direction={{ base: 'column', md: 'row' }}
-                border="1px solid"
-                borderColor="gray.200"
-                borderRadius="8px"
-                p="10px"
-                gap="12px"
+                layout
+                initial={false}
+                transition={{
+                  layout: { type: 'spring', stiffness: 320, damping: 30 },
+                }}
               >
-                <Box minW="0">
-                  <Text fontWeight="800" color="gray.900">
-                    {section.label}
-                  </Text>
-                  <Text fontSize="13px" color="gray.600">
-                    ID interno: {section.id}
-                  </Text>
-                </Box>
+                <Flex
+                  justify="space-between"
+                  align={{ base: 'stretch', md: 'center' }}
+                  direction={{ base: 'column', md: 'row' }}
+                  border="1px solid"
+                  borderColor="gray.200"
+                  borderRadius="8px"
+                  p="10px"
+                  gap="12px"
+                  bg="white"
+                  transition="box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease"
+                  _hover={{
+                    boxShadow: '0 8px 22px rgba(0,0,0,0.06)',
+                    borderColor: '#fdba74',
+                    transform: 'translateY(-1px)',
+                  }}
+                >
+                  <Box minW="0">
+                    <Text fontWeight="800" color="gray.900">
+                      {section.label}
+                    </Text>
+                  </Box>
 
-                <Flex gap="8px" align="center">
-                  <IconButton
-                    aria-label={`Mover ${section.label} para cima`}
-                    variant="ghost"
-                    borderRadius="full"
-                    color="#004d8e"
-                    isDisabled={index === 0}
-                    onClick={() => moveSection(section.id, 'up')}
-                    _hover={{ bg: 'orange.50', color: '#e27d35' }}
-                  >
-                    <ArrowUp size={18} />
-                  </IconButton>
+                  <Flex gap="8px" align="center">
+                    <Button
+                      aria-label={`Mover ${section.label} para cima`}
+                      variant="ghost"
+                      borderRadius="full"
+                      color="#004d8e"
+                      isDisabled={index === 0}
+                      onClick={() => moveSection(section.id, 'up')}
+                      transition="all 0.18s ease"
+                      _hover={{ bg: 'orange.50', color: '#e27d35', transform: 'translateY(-1px)' }}
+                    >
+                      <ArrowUp size={18} />
+                    </Button>
 
-                  <IconButton
-                    aria-label={`Mover ${section.label} para baixo`}
-                    variant="ghost"
-                    borderRadius="full"
-                    color="#004d8e"
-                    isDisabled={index === sections.length - 1}
-                    onClick={() => moveSection(section.id, 'down')}
-                    _hover={{ bg: 'orange.50', color: '#e27d35' }}
-                  >
-                    <ArrowDown size={18} />
-                  </IconButton>
+                    <Button
+                      aria-label={`Mover ${section.label} para baixo`}
+                      variant="ghost"
+                      borderRadius="full"
+                      color="#004d8e"
+                      isDisabled={index === sections.length - 1}
+                      onClick={() => moveSection(section.id, 'down')}
+                      transition="all 0.18s ease"
+                      _hover={{ bg: 'orange.50', color: '#e27d35', transform: 'translateY(-1px)' }}
+                    >
+                      <ArrowDown size={18} />
+                    </Button>
+
+                    <Button 
+                      title='Deletar seção'
+                      bg='red.500'
+                      onClick={() => {
+                        try {
+                          deleteSection(section.id, products);
+                          setDeleteMessage('Seção removida com sucesso.')
+                        } catch (e) {
+                          setDeleteMessage(e.message);
+                        }
+                      }} 
+                      >
+                      <Trash2 />
+                    </Button>
+                  </Flex>
                 </Flex>
-              </Flex>
+              </Box>
             ))}
           </Flex>
         </Flex>

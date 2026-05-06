@@ -173,4 +173,22 @@ export const useProductSectionsStore = create((set, get) => ({
     set({ sections: currentSections });
     return true;
   },
+
+  deleteSection: (sectionId, products) => {
+    if (sectionId === 'others') {
+      throw new Error('A seção Outros não pode ser removida.');
+    }
+
+    const hasProducts = products.some((product) => get().getProductSection(product) === sectionId); /* existe algum produto que pertence a essa seção? */
+
+    if (hasProducts) {
+      throw new Error('Essa seção ainda possui produtos vinculados.');
+    }
+
+    const nextSections = get().sections.filter((section) => section.id !== sectionId);
+
+    saveSectionDefinitions(nextSections);
+    set({ sections: nextSections })
+
+  }
 }));
