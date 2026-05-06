@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowDown, ArrowUp, Layers3, Trash2 } from 'lucide-react';
 import { useAdminHomeSectionsStore } from '../../store/useAdminHomeSectionsStore';
 import { useProductSectionsStore } from '../../store/useProductSectionsStore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getProducts } from '../../services/productsApi';
 import { useToastStore } from '../../store/useToastStore';
 
@@ -35,6 +35,8 @@ export function AdminHomeSections() {
 
   const [products, setProducts] = useState([]);
   const [deleteMessage, setDeleteMessage] = useState('');
+  const [activeSectionId, setActiveSectionId] = useState(null);
+  const reorderFeedbackTimeoutRef = useRef(null);
 
   useEffect(() => {
     async function loadProducts() {
@@ -65,6 +67,32 @@ export function AdminHomeSections() {
 
     return () => clearTimeout(timeoutId);
   }, [deleteMessage]);
+
+  useEffect(() => {
+    return () => {
+      if (reorderFeedbackTimeoutRef.current) {
+        clearTimeout(reorderFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMoveSection = (sectionId, direction) => {
+    const moved = moveSection(sectionId, direction);
+
+    if (!moved) {
+      return;
+    }
+
+    setActiveSectionId(sectionId);
+
+    if (reorderFeedbackTimeoutRef.current) {
+      clearTimeout(reorderFeedbackTimeoutRef.current);
+    }
+
+    reorderFeedbackTimeoutRef.current = setTimeout(() => {
+      setActiveSectionId(null);
+    }, 520);
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -154,8 +182,14 @@ export function AdminHomeSections() {
                 key={section.id}
                 layout
                 initial={false}
+                animate={{
+                  scale: activeSectionId === section.id ? 1.015 : 1,
+                  y: activeSectionId === section.id ? -3 : 0,
+                }}
                 transition={{
-                  layout: { type: 'spring', stiffness: 320, damping: 30 },
+                  layout: { type: 'spring', stiffness: 280, damping: 26, mass: 0.78 },
+                  scale: { duration: 0.22, ease: 'easeOut' },
+                  y: { duration: 0.22, ease: 'easeOut' },
                 }}
               >
                 <Flex
@@ -163,12 +197,13 @@ export function AdminHomeSections() {
                   align={{ base: 'stretch', md: 'center' }}
                   direction={{ base: 'column', md: 'row' }}
                   border="1px solid"
-                  borderColor="gray.200"
-                  borderRadius="8px"
+                  borderColor={activeSectionId === section.id ? '#fdba74' : 'gray.200'}
+                  borderRadius="10px"
                   p="10px"
                   gap="12px"
-                  bg="white"
-                  transition="box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease"
+                  bg={activeSectionId === section.id ? 'orange.50' : 'white'}
+                  boxShadow={activeSectionId === section.id ? '0 14px 28px rgba(226, 125, 53, 0.14)' : 'none'}
+                  transition="box-shadow 0.24s ease, transform 0.24s ease, border-color 0.24s ease, background-color 0.24s ease"
                   _hover={{
                     boxShadow: '0 8px 22px rgba(0,0,0,0.06)',
                     borderColor: '#fdba74',
@@ -188,7 +223,7 @@ export function AdminHomeSections() {
                       borderRadius="full"
                       color="#004d8e"
                       isDisabled={index === 0}
-                      onClick={() => moveSection(section.id, 'up')}
+                      onClick={() => handleMoveSection(section.id, 'up')}
                       transition="all 0.18s ease"
                       _hover={{ bg: 'orange.50', color: '#e27d35', transform: 'translateY(-1px)' }}
                     >
@@ -201,7 +236,7 @@ export function AdminHomeSections() {
                       borderRadius="full"
                       color="#004d8e"
                       isDisabled={index === sections.length - 1}
-                      onClick={() => moveSection(section.id, 'down')}
+                      onClick={() => handleMoveSection(section.id, 'down')}
                       transition="all 0.18s ease"
                       _hover={{ bg: 'orange.50', color: '#e27d35', transform: 'translateY(-1px)' }}
                     >
