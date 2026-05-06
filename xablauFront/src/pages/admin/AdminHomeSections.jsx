@@ -5,6 +5,8 @@ import { useAdminHomeSectionsStore } from '../../store/useAdminHomeSectionsStore
 import { useProductSectionsStore } from '../../store/useProductSectionsStore';
 import { useEffect, useState } from 'react';
 import { getProducts } from '../../services/productsApi';
+import { useToastStore } from '../../store/useToastStore';
+
 
 function AdminInput(props) {
   return (
@@ -22,10 +24,10 @@ function AdminInput(props) {
 }
 
 export function AdminHomeSections() {
+  const showToast = useToastStore((state) => state.showToast);
   const sections = useProductSectionsStore((state) => state.sections);
   const moveSection = useProductSectionsStore((state) => state.moveSection);
   const form = useAdminHomeSectionsStore((state) => state.form);
-  const message = useAdminHomeSectionsStore((state) => state.message);
   const isSubmitting = useAdminHomeSectionsStore((state) => state.isSubmitting);
   const setField = useAdminHomeSectionsStore((state) => state.setField);
   const submitSection = useAdminHomeSectionsStore((state) => state.submitSection);
@@ -40,12 +42,29 @@ export function AdminHomeSections() {
         const data = await getProducts();
         setProducts(data);
       } catch {
-        setDeleteMessage('Não foi possivel carregar os produtos para validar as seções.')
+        showToast({
+          type: 'error',
+          title: 'Não foi possivel carregar os produtos para validar as seções.',
+          message: 'Tente novamente mais tarde'
+        });
+        setDeleteMessage('Não foi possivel carregar os produtos para validar as seções.');
       }
     }
 
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    if (!deleteMessage) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setDeleteMessage('');
+    }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  }, [deleteMessage]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -113,18 +132,6 @@ export function AdminHomeSections() {
               {isSubmitting ? 'Salvando...' : 'Adicionar'}
             </Button>
           </Flex>
-
-          {deleteMessage && (
-            <Text fontWeight="700" color={deleteMessage.includes('sucesso') ? 'green.600' : 'red.500'}>
-              {deleteMessage}
-            </Text>
-          )}
-
-          {message && (
-            <Text fontWeight="700" color={message.includes('sucesso') ? 'green.600' : 'red.500'}>
-              {message}
-            </Text>
-          )}
         </Flex>
 
         <Flex
@@ -208,7 +215,15 @@ export function AdminHomeSections() {
                         try {
                           deleteSection(section.id, products);
                           setDeleteMessage('Seção removida com sucesso.')
+                          showToast({
+                            type: 'success',
+                            title: 'Seção removida com sucesso.'
+                          })
                         } catch (e) {
+                          showToast({
+                            type: 'error',
+                            title: e.message
+                          })
                           setDeleteMessage(e.message);
                         }
                       }} 
