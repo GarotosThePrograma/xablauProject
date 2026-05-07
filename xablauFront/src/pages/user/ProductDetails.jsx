@@ -73,7 +73,7 @@ export function ProductDetails() {
   }
 
   return (
-    <Box p={{ base: '28px 16px', md: '40px 24px' }}>
+    <Box p={{ base: '28px 16px', md: '40px 24px' }} m="20px">
       <Flex
         bg="white"
         border="1px solid"

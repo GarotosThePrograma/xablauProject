@@ -176,7 +176,7 @@ export function NavBar() {
           )}
 
           <FlexHoverOrange as={Link} to="/favorites" gap={4} color="white">
-            <MdFavorite size={30}  />
+            <MdFavorite size={30} />
           </FlexHoverOrange>
 
             <FlexHoverOrange gap={4} color="white">
