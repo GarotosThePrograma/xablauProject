@@ -6,6 +6,8 @@ import { Flex, Text, Button, Box } from "@chakra-ui/react";
 import { useCartStore } from "../../store/useCartStore";
 import { isCouponExpired, normalizeCouponCode, useCouponsStore } from '../../store/useCouponsStore';
 import { useToastStore } from '../../store/useToastStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { FIRST_PURCHASE_COUPON_CODE, useFirstPurchaseCouponStore } from '../../store/useFirstPurchaseCouponStore';
 
 function formatCurrency(value) {
   return value.toLocaleString('pt-BR', {
@@ -108,6 +110,9 @@ export function Cart() {
   const clearCart = useCartStore((state) => state.clearCart);
   const finishPurchase = useCartStore((state) => state.finishPurchase);
   const coupons = useCouponsStore((state) => state.coupons);
+  const email = useAuthStore((state) => state.email);
+  const getActiveCouponByEmail = useFirstPurchaseCouponStore((state) => state.getActiveCouponByEmail);
+  const markCouponAsUsed = useFirstPurchaseCouponStore((state) => state.markCouponAsUsed);
   const showToast = useToastStore((state) => state.showToast);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('pix');
@@ -146,7 +151,22 @@ export function Cart() {
   };
 
   const handleApplyCoupon = () => {
-    const coupon = coupons.find((item) => item.code === couponCode);
+    const normalizedCouponCode = normalizeCouponCode(couponCode);
+    const firstPurchaseCoupon = email ? getActiveCouponByEmail(email) : null;
+
+    if (normalizedCouponCode === FIRST_PURCHASE_COUPON_CODE) {
+      if (!firstPurchaseCoupon) {
+        setAppliedCoupon(null);
+        setCouponMessage('Esse cupom não está disponível para sua conta.');
+        return;
+      }
+
+      setAppliedCoupon(firstPurchaseCoupon);
+      setCouponMessage(`${firstPurchaseCoupon.code} aplicado: ${firstPurchaseCoupon.discountPercent}% de desconto.`);
+      return;
+    }
+
+    const coupon = coupons.find((item) => item.code === normalizedCouponCode);
 
     if (!coupon) {
       setAppliedCoupon(null);
@@ -184,6 +204,11 @@ export function Cart() {
         interest: interestAmount,
         total: paymentTotal,
       });
+
+      if (appliedCoupon?.code === FIRST_PURCHASE_COUPON_CODE && email) {
+        markCouponAsUsed(email);
+      }
+
       showToast({
         title: 'Compra finalizada',
         message: 'Seu pedido foi enviado para a área de pedidos.',

@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Button, Flex, Text } from '@chakra-ui/react';
 import { useToastStore } from '../../../store/useToastStore';
+import { useFirstPurchaseCouponStore } from '../../../store/useFirstPurchaseCouponStore';
 
 function getFirstErrorMessage(formErrors) {
   return Object.values(formErrors).find((error) => error?.message)?.message;
@@ -17,6 +18,7 @@ export function Register() {
   const [feedback, setFeedback] = useState({ type: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const showToast = (useToastStore((state) => state.showToast));
+  const ensureCouponForEmail = useFirstPurchaseCouponStore((state) => state.ensureCouponForEmail);
 
   const {
     register,
@@ -54,6 +56,7 @@ export function Register() {
       const data = await response.json();
 
       if (data.sucesso) {
+        ensureCouponForEmail(dadosValidados.email);
         setFeedback({ type: 'success', message: `${data.mensagem || 'Cadastro realizado com sucesso'} Redirecionando para o login...` });
         setTimeout(() => navigate('/login'), 1500);
         return;
