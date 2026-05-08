@@ -11,7 +11,7 @@ export function FirstPurchaseCouponModal({ coupon, isOpen, onClose }) {
     try {
       await navigator.clipboard.writeText(coupon.code);
       showToast({
-        title: 'Cupom copiado',
+        title: 'Cupom copiado para área de tranferência',
         message: coupon.code,
       });
     } catch {

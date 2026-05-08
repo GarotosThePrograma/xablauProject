@@ -2,6 +2,7 @@ import { Box, Button, Flex, IconButton, Image, Span, Text } from '@chakra-ui/rea
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MdFavorite, MdFavoriteBorder } from 'react-icons/md';
+import { ShoppingCart } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
 import { useFavoritesStore } from '../../store/useFavoritesStore';
 import { useToastStore } from '../../store/useToastStore';
@@ -16,6 +17,10 @@ export function ProductCard({ product }) {
   const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
   const showToast = useToastStore((state) => state.showToast);
   const favorite = favoriteIds.includes(product.id);
+
+  const cart = useCartStore((state) => state.cart)
+  const itemOnCart = cart.find((item) => item.id === product.id);
+  const itemAlreadyOnCart = Boolean(itemOnCart);
 
   const handleAdd = async () => {
     try {
@@ -77,6 +82,7 @@ export function ProductCard({ product }) {
         onClick={() => toggleFavorite(product.id)}
         _hover={{ bg: 'orange.50', transform: 'scale(1.05)' }}
       >
+
         {favorite ? <MdFavorite size={22} /> : <MdFavoriteBorder size={22} />}
       </IconButton>
 
@@ -160,7 +166,11 @@ export function ProductCard({ product }) {
             _active={{ transform: 'scale(0.97)' }}
             onClick={handleAdd}
           >
-            {added ? 'Adicionado!' : 'Adicionar ao carrinho'}
+            {added ? 'Adicionado!' : (
+              <>
+                Adicionar ao carrinho {itemAlreadyOnCart ? <ShoppingCart /> : ''}
+              </>
+              )}
           </Button>
         )}
       </Box>
