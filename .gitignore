@@ -27,3 +27,4 @@ dist-ssr
 # Back-end
 [Bb]in/
 [Oo]bj/
+appsettings.json
